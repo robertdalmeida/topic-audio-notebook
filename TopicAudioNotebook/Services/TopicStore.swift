@@ -1,0 +1,155 @@
+import Foundation
+import Combine
+
+@MainActor
+class TopicStore: ObservableObject {
+    @Published var topics: [Topic] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    
+    private let saveKey = "SavedTopics"
+    private let fileManager = FileManager.default
+    
+    init() {
+        loadTopics()
+    }
+    
+    // MARK: - Topic Management
+    
+    func addTopic(name: String, description: String = "", color: TopicColor = .blue) {
+        let topic = Topic(name: name, description: description, color: color)
+        topics.append(topic)
+        saveTopics()
+    }
+    
+    func updateTopic(_ topic: Topic) {
+        if let index = topics.firstIndex(where: { $0.id == topic.id }) {
+            var updatedTopic = topic
+            updatedTopic.updatedAt = Date()
+            topics[index] = updatedTopic
+            saveTopics()
+        }
+    }
+    
+    func deleteTopic(_ topic: Topic) {
+        topics.removeAll { $0.id == topic.id }
+        deleteTopicRecordings(topic)
+        saveTopics()
+    }
+    
+    // MARK: - Recording Management
+    
+    func addRecording(to topicId: UUID, title: String, fileURL: URL, duration: TimeInterval) {
+        guard let index = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        let recording = Recording(title: title, fileURL: fileURL, duration: duration)
+        topics[index].recordings.append(recording)
+        topics[index].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await transcribeRecording(recordingId: recording.id, in: topicId)
+        }
+    }
+    
+    func deleteRecording(_ recording: Recording, from topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        topics[topicIndex].recordings.removeAll { $0.id == recording.id }
+        topics[topicIndex].updatedAt = Date()
+        
+        try? fileManager.removeItem(at: recording.fileURL)
+        saveTopics()
+    }
+    
+    // MARK: - Transcription
+    
+    func transcribeRecording(recordingId: UUID, in topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }) else {
+            return
+        }
+        
+        topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .inProgress
+        
+        do {
+            let transcript = try await TranscriptionService.shared.transcribe(
+                audioURL: topics[topicIndex].recordings[recordingIndex].fileURL
+            )
+            
+            topics[topicIndex].recordings[recordingIndex].transcript = transcript
+            topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .completed
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .failed
+            errorMessage = "Transcription failed: \(error.localizedDescription)"
+            saveTopics()
+        }
+    }
+    
+    func retryTranscription(for recording: Recording, in topicId: UUID) {
+        Task {
+            await transcribeRecording(recordingId: recording.id, in: topicId)
+        }
+    }
+    
+    // MARK: - Consolidation
+    
+    func consolidateSummary(for topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        let transcripts = topics[topicIndex].allTranscripts
+        guard !transcripts.isEmpty else {
+            errorMessage = "No transcripts available to consolidate"
+            return
+        }
+        
+        isLoading = true
+        
+        do {
+            let summary = try await AIService.shared.consolidateTranscripts(transcripts)
+            topics[topicIndex].consolidatedSummary = summary
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            errorMessage = "Consolidation failed: \(error.localizedDescription)"
+        }
+        
+        isLoading = false
+    }
+    
+    // MARK: - Persistence
+    
+    private func saveTopics() {
+        if let encoded = try? JSONEncoder().encode(topics) {
+            UserDefaults.standard.set(encoded, forKey: saveKey)
+        }
+    }
+    
+    private func loadTopics() {
+        if let data = UserDefaults.standard.data(forKey: saveKey),
+           let decoded = try? JSONDecoder().decode([Topic].self, from: data) {
+            topics = decoded
+        }
+    }
+    
+    private func deleteTopicRecordings(_ topic: Topic) {
+        for recording in topic.recordings {
+            try? fileManager.removeItem(at: recording.fileURL)
+        }
+    }
+    
+    // MARK: - Helpers
+    
+    func getRecordingsDirectory() -> URL {
+        let paths = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+        let recordingsDir = paths[0].appendingPathComponent("Recordings", isDirectory: true)
+        
+        if !fileManager.fileExists(atPath: recordingsDir.path) {
+            try? fileManager.createDirectory(at: recordingsDir, withIntermediateDirectories: true)
+        }
+        
+        return recordingsDir
+    }
+}
