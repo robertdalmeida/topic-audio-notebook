@@ -22,6 +22,13 @@
 		A100000D229F000D /* SummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000D229F0000 /* SummaryView.swift */; };
 		A100000E229F000E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E229F0000 /* SettingsView.swift */; };
 		A100000F229F000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000F229F0000 /* Assets.xcassets */; };
+		A1000011229F0011 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000011229F0000 /* AudioPlayer.swift */; };
+		A1000012229F0012 /* RecordingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012229F0000 /* RecordingDetailView.swift */; };
+		A1000013229F0013 /* StorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000013229F0000 /* StorageProvider.swift */; };
+		A1000014229F0014 /* FileStorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014229F0000 /* FileStorageProvider.swift */; };
+		A1000015229F0015 /* CoreDataStorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000015229F0000 /* CoreDataStorageProvider.swift */; };
+		A1000016229F0016 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016229F0000 /* StorageManager.swift */; };
+		A1000017229F0017 /* TopicAudioNotebook.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A1000017229F0000 /* TopicAudioNotebook.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +49,13 @@
 		A100000E229F0000 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A100000F229F0000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000010229F0000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000011229F0000 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		A1000012229F0000 /* RecordingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingDetailView.swift; sourceTree = "<group>"; };
+		A1000013229F0000 /* StorageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageProvider.swift; sourceTree = "<group>"; };
+		A1000014229F0000 /* FileStorageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStorageProvider.swift; sourceTree = "<group>"; };
+		A1000015229F0000 /* CoreDataStorageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStorageProvider.swift; sourceTree = "<group>"; };
+		A1000016229F0000 /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
+		A1000017229F0000 /* TopicAudioNotebook.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = TopicAudioNotebook.xcdatamodeld; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +84,7 @@
 				A10000D0229F0000 /* Models */,
 				A10000E0229F0000 /* Views */,
 				A10000F1229F0000 /* Services */,
+				A1000017229F0000 /* TopicAudioNotebook.xcdatamodeld */,
 				A100000F229F0000 /* Assets.xcassets */,
 				A1000010229F0000 /* Info.plist */,
 			);
@@ -100,6 +115,7 @@
 				A1000009229F0000 /* AddTopicView.swift */,
 				A100000A229F0000 /* TopicDetailView.swift */,
 				A100000B229F0000 /* RecordingView.swift */,
+				A1000012229F0000 /* RecordingDetailView.swift */,
 				A100000C229F0000 /* TranscriptView.swift */,
 				A100000D229F0000 /* SummaryView.swift */,
 				A100000E229F0000 /* SettingsView.swift */,
@@ -112,10 +128,23 @@
 			children = (
 				A1000005229F0000 /* TopicStore.swift */,
 				A1000006229F0000 /* AudioRecorder.swift */,
+				A1000011229F0000 /* AudioPlayer.swift */,
 				A1000007229F0000 /* TranscriptionService.swift */,
 				A1000008229F0000 /* AIService.swift */,
+				A10000F2229F0000 /* Storage */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A10000F2229F0000 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				A1000013229F0000 /* StorageProvider.swift */,
+				A1000014229F0000 /* FileStorageProvider.swift */,
+				A1000015229F0000 /* CoreDataStorageProvider.swift */,
+				A1000016229F0000 /* StorageManager.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -193,14 +222,21 @@
 				A1000004229F0004 /* Recording.swift in Sources */,
 				A1000005229F0005 /* TopicStore.swift in Sources */,
 				A1000006229F0006 /* AudioRecorder.swift in Sources */,
+				A1000011229F0011 /* AudioPlayer.swift in Sources */,
 				A1000007229F0007 /* TranscriptionService.swift in Sources */,
 				A1000008229F0008 /* AIService.swift in Sources */,
 				A1000009229F0009 /* AddTopicView.swift in Sources */,
 				A100000A229F000A /* TopicDetailView.swift in Sources */,
 				A100000B229F000B /* RecordingView.swift in Sources */,
+				A1000012229F0012 /* RecordingDetailView.swift in Sources */,
 				A100000C229F000C /* TranscriptView.swift in Sources */,
 				A100000D229F000D /* SummaryView.swift in Sources */,
 				A100000E229F000E /* SettingsView.swift in Sources */,
+				A1000013229F0013 /* StorageProvider.swift in Sources */,
+				A1000014229F0014 /* FileStorageProvider.swift in Sources */,
+				A1000015229F0015 /* CoreDataStorageProvider.swift in Sources */,
+				A1000016229F0016 /* StorageManager.swift in Sources */,
+				A1000017229F0017 /* TopicAudioNotebook.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

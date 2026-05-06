@@ -9,15 +9,69 @@ actor AIService {
     
     private init() {}
     
+    struct RecordingSummaryResult {
+        let summary: String
+        let points: [String]
+    }
+    
+    func summarizeRecording(_ transcript: String) async throws -> RecordingSummaryResult {
+        guard let apiKey = apiKey, !apiKey.isEmpty else {
+            throw AIServiceError.noAPIKey
+        }
+        
+        return try await callOpenAIForRecordingSummary(transcript: transcript, apiKey: apiKey)
+    }
+    
     func consolidateTranscripts(_ transcripts: [String]) async throws -> String {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             return generateLocalSummary(transcripts)
         }
         
-        return try await callOpenAI(transcripts: transcripts, apiKey: apiKey)
+        return try await callOpenAIForConsolidation(transcripts: transcripts, apiKey: apiKey)
     }
     
-    private func callOpenAI(transcripts: [String], apiKey: String) async throws -> String {
+    func consolidateTranscriptsWithPoints(_ transcripts: [String]) async throws -> (summary: String, points: [String]) {
+        guard let apiKey = apiKey, !apiKey.isEmpty else {
+            let summary = generateLocalSummary(transcripts)
+            return (summary, [])
+        }
+        
+        return try await callOpenAIForConsolidationWithPoints(transcripts: transcripts, apiKey: apiKey)
+    }
+    
+    private func callOpenAIForRecordingSummary(transcript: String, apiKey: String) async throws -> RecordingSummaryResult {
+        let systemPrompt = """
+        You are an expert at summarizing audio transcripts. Analyze the transcript and provide:
+        1. A concise summary paragraph (2-4 sentences)
+        2. A list of 3-7 key points as bullet points
+        
+        Format your response as JSON with this structure:
+        {
+            "summary": "Your summary paragraph here",
+            "points": ["Point 1", "Point 2", "Point 3"]
+        }
+        
+        Only output valid JSON, no other text.
+        """
+        
+        let response = try await callOpenAIChat(
+            systemPrompt: systemPrompt,
+            userMessage: "Summarize this transcript:\n\n\(transcript)",
+            apiKey: apiKey
+        )
+        
+        guard let data = response.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let summary = json["summary"] as? String,
+              let points = json["points"] as? [String] else {
+            let lines = response.components(separatedBy: "\n").filter { !$0.isEmpty }
+            return RecordingSummaryResult(summary: response, points: lines.prefix(5).map { String($0) })
+        }
+        
+        return RecordingSummaryResult(summary: summary, points: points)
+    }
+    
+    private func callOpenAIForConsolidation(transcripts: [String], apiKey: String) async throws -> String {
         let url = URL(string: "https://api.openai.com/v1/chat/completions")!
         
         var request = URLRequest(url: url)
@@ -50,6 +104,79 @@ actor AIService {
             "messages": [
                 ["role": "system", "content": systemPrompt],
                 ["role": "user", "content": "Please consolidate these transcripts into a unified summary:\n\n\(combinedTranscripts)"]
+            ],
+            "temperature": 0.7,
+            "max_tokens": 2000
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw AIServiceError.requestFailed
+        }
+        
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let choices = json?["choices"] as? [[String: Any]],
+              let message = choices.first?["message"] as? [String: Any],
+              let content = message["content"] as? String else {
+            throw AIServiceError.invalidResponse
+        }
+        
+        return content
+    }
+    
+    private func callOpenAIForConsolidationWithPoints(transcripts: [String], apiKey: String) async throws -> (summary: String, points: [String]) {
+        let combinedTranscripts = transcripts.enumerated().map { index, transcript in
+            "Recording \(index + 1):\n\(transcript)"
+        }.joined(separator: "\n\n---\n\n")
+        
+        let systemPrompt = """
+        You are an expert at synthesizing multiple audio transcripts into a cohesive summary.
+        Analyze all transcripts and provide:
+        1. A comprehensive summary paragraph combining all key information
+        2. A list of 5-10 key points extracted from all recordings, removing redundancies
+        
+        Format your response as JSON with this structure:
+        {
+            "summary": "Your comprehensive summary here",
+            "points": ["Key point 1", "Key point 2", "Key point 3"]
+        }
+        
+        Only output valid JSON, no other text.
+        """
+        
+        let response = try await callOpenAIChat(
+            systemPrompt: systemPrompt,
+            userMessage: "Consolidate these transcripts:\n\n\(combinedTranscripts)",
+            apiKey: apiKey
+        )
+        
+        guard let data = response.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let summary = json["summary"] as? String,
+              let points = json["points"] as? [String] else {
+            return (response, [])
+        }
+        
+        return (summary, points)
+    }
+    
+    private func callOpenAIChat(systemPrompt: String, userMessage: String, apiKey: String) async throws -> String {
+        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "model": "gpt-4o",
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": userMessage]
             ],
             "temperature": 0.7,
             "max_tokens": 2000

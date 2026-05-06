@@ -87,7 +87,9 @@ struct TopicDetailView: View {
                     .listRowBackground(Color.clear)
                 } else {
                     ForEach(currentTopic.recordings) { recording in
-                        RecordingRowView(recording: recording, topicId: topic.id)
+                        NavigationLink(destination: RecordingDetailView(recording: recording, topicId: topic.id)) {
+                            RecordingRowView(recording: recording, topicId: topic.id)
+                        }
                     }
                     .onDelete(perform: deleteRecording)
                 }

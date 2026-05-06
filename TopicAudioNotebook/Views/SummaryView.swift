@@ -1,8 +1,15 @@
 import SwiftUI
 
+enum SummaryDisplayMode: String, CaseIterable {
+    case points = "Key Points"
+    case longForm = "Full Summary"
+}
+
 struct SummaryView: View {
     @Environment(\.dismiss) private var dismiss
     let topic: Topic
+    
+    @State private var displayMode: SummaryDisplayMode = .points
     
     var body: some View {
         NavigationStack {
@@ -16,16 +23,21 @@ struct SummaryView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     
+                    if topic.consolidatedSummary != nil || topic.consolidatedPoints != nil {
+                        Picker("Display Mode", selection: $displayMode) {
+                            ForEach(SummaryDisplayMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    
                     Divider()
                     
-                    if let summary = topic.consolidatedSummary {
-                        MarkdownTextView(text: summary)
+                    if displayMode == .points {
+                        pointsView
                     } else {
-                        ContentUnavailableView {
-                            Label("No Summary", systemImage: "doc.richtext")
-                        } description: {
-                            Text("Generate a summary by tapping Consolidate")
-                        }
+                        longFormView
                     }
                 }
                 .padding()
@@ -41,13 +53,82 @@ struct SummaryView: View {
                 
                 if topic.consolidatedSummary != nil {
                     ToolbarItem(placement: .primaryAction) {
-                        ShareLink(item: topic.consolidatedSummary ?? "") {
+                        ShareLink(item: shareContent) {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var pointsView: some View {
+        if let points = topic.consolidatedPoints, !points.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Key Points")
+                    .font(.headline)
+                    .padding(.bottom, 4)
+                
+                ForEach(Array(points.enumerated()), id: \.offset) { index, point in
+                    HStack(alignment: .top, spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.2))
+                                .frame(width: 28, height: 28)
+                            Text("\(index + 1)")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.blue)
+                        }
+                        
+                        Text(point)
+                            .font(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            .padding()
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+        } else {
+            ContentUnavailableView {
+                Label("No Key Points", systemImage: "list.bullet")
+            } description: {
+                Text("Key points will appear here after consolidation")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var longFormView: some View {
+        if let summary = topic.consolidatedSummary {
+            MarkdownTextView(text: summary)
+        } else {
+            ContentUnavailableView {
+                Label("No Summary", systemImage: "doc.richtext")
+            } description: {
+                Text("Generate a summary by tapping Consolidate")
+            }
+        }
+    }
+    
+    private var shareContent: String {
+        var content = "# \(topic.name) - Summary\n\n"
+        
+        if let points = topic.consolidatedPoints, !points.isEmpty {
+            content += "## Key Points\n\n"
+            for (index, point) in points.enumerated() {
+                content += "\(index + 1). \(point)\n"
+            }
+            content += "\n"
+        }
+        
+        if let summary = topic.consolidatedSummary {
+            content += "## Full Summary\n\n\(summary)"
+        }
+        
+        return content
     }
 }
 

@@ -6,12 +6,16 @@ class TopicStore: ObservableObject {
     @Published var topics: [Topic] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var currentStorageType: StorageType = .file
     
-    private let saveKey = "SavedTopics"
     private let fileManager = FileManager.default
+    private let storageManager = StorageManager.shared
     
     init() {
-        loadTopics()
+        currentStorageType = storageManager.currentStorageType
+        Task {
+            await loadTopics()
+        }
     }
     
     // MARK: - Topic Management
@@ -94,6 +98,36 @@ class TopicStore: ObservableObject {
         }
     }
     
+    // MARK: - Recording Summary
+    
+    func generateRecordingSummary(recordingId: UUID, in topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }),
+              let transcript = topics[topicIndex].recordings[recordingIndex].transcript else {
+            return
+        }
+        
+        topics[topicIndex].recordings[recordingIndex].summaryStatus = .inProgress
+        saveTopics()
+        
+        do {
+            let result = try await AIService.shared.summarizeRecording(transcript)
+            topics[topicIndex].recordings[recordingIndex].summary = result.summary
+            topics[topicIndex].recordings[recordingIndex].summaryPoints = result.points
+            topics[topicIndex].recordings[recordingIndex].summaryStatus = .completed
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            if case AIServiceError.noAPIKey = error {
+                topics[topicIndex].recordings[recordingIndex].summaryStatus = .notAvailable
+            } else {
+                topics[topicIndex].recordings[recordingIndex].summaryStatus = .failed
+            }
+            errorMessage = "Summary generation failed: \(error.localizedDescription)"
+            saveTopics()
+        }
+    }
+    
     // MARK: - Consolidation
     
     func consolidateSummary(for topicId: UUID) async {
@@ -108,8 +142,9 @@ class TopicStore: ObservableObject {
         isLoading = true
         
         do {
-            let summary = try await AIService.shared.consolidateTranscripts(transcripts)
-            topics[topicIndex].consolidatedSummary = summary
+            let result = try await AIService.shared.consolidateTranscriptsWithPoints(transcripts)
+            topics[topicIndex].consolidatedSummary = result.summary
+            topics[topicIndex].consolidatedPoints = result.points
             topics[topicIndex].updatedAt = Date()
             saveTopics()
         } catch {
@@ -121,22 +156,40 @@ class TopicStore: ObservableObject {
     
     // MARK: - Persistence
     
-    private func saveTopics() {
-        if let encoded = try? JSONEncoder().encode(topics) {
-            UserDefaults.standard.set(encoded, forKey: saveKey)
+    func saveTopics() {
+        Task {
+            do {
+                try await storageManager.saveTopics(topics)
+            } catch {
+                errorMessage = "Failed to save: \(error.localizedDescription)"
+            }
         }
     }
     
-    private func loadTopics() {
-        if let data = UserDefaults.standard.data(forKey: saveKey),
-           let decoded = try? JSONDecoder().decode([Topic].self, from: data) {
-            topics = decoded
+    func loadTopics() async {
+        do {
+            topics = try await storageManager.loadTopics()
+        } catch {
+            errorMessage = "Failed to load: \(error.localizedDescription)"
         }
     }
     
     private func deleteTopicRecordings(_ topic: Topic) {
-        for recording in topic.recordings {
-            try? fileManager.removeItem(at: recording.fileURL)
+        Task {
+            for recording in topic.recordings {
+                try? await storageManager.deleteAudioFile(at: recording.fileURL)
+            }
+        }
+    }
+    
+    // MARK: - Storage Management
+    
+    func switchStorage(to type: StorageType) async {
+        do {
+            try await storageManager.switchStorage(to: type, migrateData: true, topics: topics)
+            currentStorageType = type
+        } catch {
+            errorMessage = "Failed to switch storage: \(error.localizedDescription)"
         }
     }
     

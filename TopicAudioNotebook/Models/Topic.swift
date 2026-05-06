@@ -6,6 +6,7 @@ struct Topic: Identifiable, Codable {
     var description: String
     var recordings: [Recording]
     var consolidatedSummary: String?
+    var consolidatedPoints: [String]?
     var createdAt: Date
     var updatedAt: Date
     var color: TopicColor
@@ -16,6 +17,7 @@ struct Topic: Identifiable, Codable {
         description: String = "",
         recordings: [Recording] = [],
         consolidatedSummary: String? = nil,
+        consolidatedPoints: [String]? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         color: TopicColor = .blue
@@ -25,6 +27,7 @@ struct Topic: Identifiable, Codable {
         self.description = description
         self.recordings = recordings
         self.consolidatedSummary = consolidatedSummary
+        self.consolidatedPoints = consolidatedPoints
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.color = color
