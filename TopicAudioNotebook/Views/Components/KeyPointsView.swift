@@ -17,6 +17,10 @@ struct KeyPointsView: View {
         return Swift.max(0, points.count - maxPts)
     }
     
+    private var formattedText: String {
+        displayedPoints.map { "• \($0)" }.joined(separator: "\n")
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(displayedPoints, id: \.self) { point in
@@ -29,6 +33,7 @@ struct KeyPointsView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .textSelection(.enabled)
     }
 }
 
@@ -37,10 +42,9 @@ struct KeyPointRow: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "circle.fill")
-                .font(.system(size: 5))
+            Text("•")
+                .font(.subheadline)
                 .foregroundStyle(.blue)
-                .padding(.top, 6)
             
             Text(point)
                 .font(.subheadline)

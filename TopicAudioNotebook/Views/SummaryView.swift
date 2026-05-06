@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 enum SummaryDisplayMode: String, CaseIterable {
     case points = "Key Points"
@@ -66,21 +71,24 @@ struct SummaryView: View {
     private var pointsView: some View {
         if let points = topic.consolidatedPoints, !points.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Key Points")
-                    .font(.headline)
-                    .padding(.bottom, 4)
+                HStack {
+                    Text("Key Points")
+                        .font(.headline)
+                    Spacer()
+                    Button {
+                        copyPointsToClipboard(points)
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.subheadline)
+                    }
+                }
+                .padding(.bottom, 4)
                 
-                ForEach(Array(points.enumerated()), id: \.offset) { index, point in
+                ForEach(Array(points.enumerated()), id: \.offset) { _, point in
                     HStack(alignment: .top, spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.blue.opacity(0.2))
-                                .frame(width: 28, height: 28)
-                            Text("\(index + 1)")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.blue)
-                        }
+                        Text("•")
+                            .font(.body)
+                            .foregroundStyle(.blue)
                         
                         Text(point)
                             .font(.body)
@@ -89,6 +97,7 @@ struct SummaryView: View {
                     .padding(.vertical, 4)
                 }
             }
+            .textSelection(.enabled)
             .padding()
             .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
         } else {
@@ -98,6 +107,16 @@ struct SummaryView: View {
                 Text("Key points will appear here after consolidation")
             }
         }
+    }
+    
+    private func copyPointsToClipboard(_ points: [String]) {
+        let text = points.map { "• \($0)" }.joined(separator: "\n")
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
     }
     
     @ViewBuilder

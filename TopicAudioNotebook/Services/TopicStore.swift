@@ -49,6 +49,8 @@ class TopicStore: ObservableObject {
         let recording = Recording(title: title, fileURL: fileURL, duration: duration)
         topics[index].recordings.append(recording)
         topics[index].updatedAt = Date()
+        topics[index].consolidatedSummary = nil
+        topics[index].consolidatedPoints = nil
         saveTopics()
         
         Task {
@@ -61,9 +63,17 @@ class TopicStore: ObservableObject {
         
         topics[topicIndex].recordings.removeAll { $0.id == recording.id }
         topics[topicIndex].updatedAt = Date()
+        topics[topicIndex].consolidatedSummary = nil
+        topics[topicIndex].consolidatedPoints = nil
         
         try? fileManager.removeItem(at: recording.fileURL)
         saveTopics()
+        
+        if topics[topicIndex].transcribedRecordingsCount > 0 {
+            Task {
+                await consolidateSummary(for: topicId)
+            }
+        }
     }
     
     // MARK: - Transcription
@@ -85,6 +95,8 @@ class TopicStore: ObservableObject {
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .completed
             topics[topicIndex].updatedAt = Date()
             saveTopics()
+            
+            await consolidateSummary(for: topicId)
         } catch {
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .failed
             errorMessage = "Transcription failed: \(error.localizedDescription)"
