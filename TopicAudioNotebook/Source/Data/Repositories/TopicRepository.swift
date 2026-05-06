@@ -14,8 +14,10 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     
     private let fileManager = FileManager.default
     private let storageManager = StorageManager.shared
+    private let summarizationService: StateManagedSummarizationService
     
-    init() {
+    init(stateManager: SummarizationStateManager = .shared) {
+        self.summarizationService = StateManagedSummarizationService(stateManager: stateManager)
         currentStorageType = storageManager.currentStorageType
         Task {
             await loadTopics()
@@ -253,8 +255,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         saveTopics()
         
         do {
-            let service = SummarizationServiceFactory.shared.currentService
-            let result = try await service.summarizeRecording(transcript)
+            let result = try await summarizationService.summarizeRecording(transcript)
             topics[topicIndex].recordings[recordingIndex].summary = result.summary
             topics[topicIndex].recordings[recordingIndex].summaryPoints = result.points
             topics[topicIndex].recordings[recordingIndex].summaryStatus = .completed
@@ -285,8 +286,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         isLoading = true
         
         do {
-            let service = SummarizationServiceFactory.shared.currentService
-            let result = try await service.consolidateTranscripts(allContent)
+            let result = try await summarizationService.consolidateTranscripts(allContent)
             topics[topicIndex].consolidatedSummary = result.summary
             topics[topicIndex].consolidatedPoints = result.points
             topics[topicIndex].updatedAt = Date()

@@ -79,26 +79,11 @@ private struct GenerateSummaryView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            if isGenerating {
-                HStack {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                    Text("Generating summary...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Button(action: onGenerate) {
-                    HStack {
-                        Image(systemName: "sparkles")
-                        Text("Generate Topic Summary")
-                    }
-                    .font(.subheadline)
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.roundedRectangle(radius: 8))
-            }
+            SummarizeButton(
+                title: "Generate Topic Summary",
+                style: .rounded,
+                action: onGenerate
+            )
         }
         .padding(.vertical, 8)
     }

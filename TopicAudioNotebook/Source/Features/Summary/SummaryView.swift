@@ -117,49 +117,14 @@ private struct RegenerateActionSection: View {
     @Bindable var viewModel: SummaryViewModel
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            Button {
+        SummarizeButton(
+            title: "Regenerate",
+            icon: "arrow.clockwise",
+            action: {
                 Task { await viewModel.regenerateSummary() }
-            } label: {
-                buttonIcon
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-            .disabled(!viewModel.canRegenerate)
-            
-            modelLoadingStatus
-        }
-    }
-    
-    @ViewBuilder
-    private var buttonIcon: some View {
-        switch viewModel.modelLoadingState {
-        case .loading:
-            ProgressView().scaleEffect(0.8)
-        default:
-            Image(systemName: "arrow.clockwise")
-        }
-    }
-
-    @ViewBuilder
-    private var modelLoadingStatus: some View {
-        switch viewModel.modelLoadingState {
-        case .loading(let progress):
-            VStack(alignment: .trailing, spacing: 4) {
-                ProgressView(value: progress)
-                    .progressViewStyle(.linear)
-                    .frame(width: 100)
-                Text("Loading: \(Int(progress * 100))%")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        case .failed(let error):
-            Text(error)
-                .font(.caption2)
-                .foregroundStyle(.red)
-        case .idle, .loaded:
-            EmptyView()
-        }
+        )
+        .controlSize(.small)
     }
 }
 

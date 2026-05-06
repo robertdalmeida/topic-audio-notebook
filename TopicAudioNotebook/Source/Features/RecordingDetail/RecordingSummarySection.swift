@@ -53,25 +53,20 @@ private struct SummaryHeader: View {
             
             Spacer()
             
-            if summaryStatus == .completed {
-                Button(action: onGenerate) {
-                    Label("Generate", systemImage: "sparkles")
-                        .font(.subheadline)
+            if isGenerating {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Generating...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-
-            } else if isGenerating {
-                ProgressView()
-                    .scaleEffect(0.8)
             } else {
-                Button(action: onGenerate) {
-                    Label("Generate", systemImage: "sparkles")
-                        .font(.subheadline)
-                }
-                .buttonStyle(.borderedProminent)
-                .buttonBorderShape(.capsule)
-                .disabled(!hasTranscript)
+                SummarizeButton(
+                    title: summaryStatus == .completed ? "Regenerate" : "Generate",
+                    isEnabled: hasTranscript,
+                    action: onGenerate
+                )
             }
         }
     }

@@ -66,6 +66,9 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     func setProvider(_ provider: SummarizationProvider) {
         currentProvider = provider
+        Task { @MainActor in
+            SummarizationStateManager.shared.resetState()
+        }
     }
     
     func isServiceReady() async -> Bool {

@@ -13,15 +13,8 @@ final class SummaryViewModel {
         case error(String)
     }
     
-    enum ModelLoadingState: Equatable {
-        case idle
-        case loading(progress: Double)
-        case loaded
-        case failed(String)
-    }
-    
     private(set) var viewState: ViewState = .loading
-    private(set) var modelLoadingState: ModelLoadingState = .idle
+    private let stateManager = SummarizationStateManager.shared
     var displayMode: SummaryDisplayMode = .points
     
     // MARK: - Dependencies
@@ -42,14 +35,7 @@ final class SummaryViewModel {
     }
     
     var canRegenerate: Bool {
-        guard regenerateAction != nil else { return false }
-        
-        switch viewState {
-        case .ready:
-            return modelLoadingState == .loaded || modelLoadingState == .idle
-        default:
-            return false
-        }
+        regenerateAction != nil && viewState == .ready
     }
     
     var isRegenerating: Bool {
@@ -94,10 +80,10 @@ final class SummaryViewModel {
     func onAppear() async {
         if hasSummary {
             viewState = .ready
-            await loadModelIfNeeded()
+            await stateManager.preloadModelIfNeeded()
         } else {
             viewState = .loading
-            await loadModelIfNeeded()
+            await stateManager.preloadModelIfNeeded()
             viewState = .ready
         }
     }
@@ -110,32 +96,4 @@ final class SummaryViewModel {
         viewState = .ready
     }
     
-    // MARK: - Private Methods
-    
-    private func loadModelIfNeeded() async {
-        let isReady = await factory.isServiceReady()
-        
-        if isReady {
-            modelLoadingState = .loaded
-            return
-        }
-        
-        guard factory.requiresPreloading() else {
-            modelLoadingState = .loaded
-            return
-        }
-        
-        modelLoadingState = .loading(progress: 0.0)
-        
-        do {
-            try await factory.preloadCurrentService { [weak self] progress in
-                Task { @MainActor [weak self] in
-                    self?.modelLoadingState = .loading(progress: progress)
-                }
-            }
-            modelLoadingState = .loaded
-        } catch {
-            modelLoadingState = .failed("Failed to load model: \(error.localizedDescription)")
-        }
-    }
 }
