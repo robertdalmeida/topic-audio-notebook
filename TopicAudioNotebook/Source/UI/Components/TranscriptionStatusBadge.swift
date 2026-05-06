@@ -13,7 +13,6 @@ struct TranscriptionStatusBadge: View {
                 } else {
                     Image(systemName: status.iconName)
                 }
-                Text(status.rawValue)
             }
             .font(.caption)
             .padding(.horizontal, 8)
