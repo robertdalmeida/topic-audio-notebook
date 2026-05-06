@@ -1,33 +1,24 @@
 import SwiftUI
 
 struct RecordingRowView: View {
-    @EnvironmentObject var topicStore: TopicStore
-    
-    let recording: Recording
-    let topicId: UUID
-    
-    @State private var showingTranscript = false
+    @StateObject var viewModel: RecordingRowViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             RecordingRowHeader(
-                recording: recording,
-                onRetry: {
-                    if recording.transcriptionStatus == .failed {
-                        topicStore.retryTranscription(for: recording, in: topicId)
-                    }
-                }
+                recording: viewModel.recording,
+                onRetry: viewModel.retryTranscription
             )
             
-            if let transcript = recording.transcript, !transcript.isEmpty {
-                TranscriptPreviewButton(transcript: transcript) {
-                    showingTranscript = true
+            if viewModel.hasTranscript {
+                TranscriptPreviewButton(transcript: viewModel.recording.transcript!) {
+                    viewModel.presentTranscript()
                 }
             }
         }
         .padding(.vertical, 4)
-        .sheet(isPresented: $showingTranscript) {
-            TranscriptView(recording: recording)
+        .sheet(isPresented: $viewModel.showingTranscript) {
+            TranscriptView(recording: viewModel.recording)
         }
     }
 }
@@ -83,17 +74,15 @@ private struct TranscriptPreviewButton: View {
 }
 
 #Preview {
-    List {
+    let repository = TopicRepository()
+    return List {
         RecordingRowView(
-            recording: Recording(
-                title: "Sample Recording",
-                fileURL: URL(fileURLWithPath: "/test"),
-                duration: 125,
-                transcript: "This is a sample transcript preview that shows the first few lines.",
-                transcriptionStatus: .completed
-            ),
-            topicId: UUID()
+            viewModel: RecordingRowViewModel(
+                recordingId: UUID(),
+                topicId: UUID(),
+                repository: repository
+            )
         )
     }
-    .environmentObject(TopicStore())
+    .environmentObject(repository)
 }

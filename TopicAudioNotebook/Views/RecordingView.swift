@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecordingView: View {
-    @EnvironmentObject var topicStore: TopicStore
+    @EnvironmentObject var repository: TopicRepository
     @Environment(\.dismiss) private var dismiss
     @StateObject private var recorder = AudioRecorder()
     
@@ -102,7 +102,7 @@ struct RecordingView: View {
     
     private func startRecording() {
         Task {
-            let directory = topicStore.getRecordingsDirectory()
+            let directory = repository.getRecordingsDirectory()
             currentFileURL = await recorder.startRecording(to: directory)
         }
     }
@@ -125,7 +125,7 @@ struct RecordingView: View {
         }
         
         let title = recordingTitle.isEmpty ? "Untitled Recording" : recordingTitle
-        topicStore.addRecording(to: topicId, title: title, fileURL: url, duration: result.1)
+        repository.addRecording(to: topicId, title: title, fileURL: url, duration: result.1)
         dismiss()
     }
     
@@ -184,5 +184,5 @@ struct AudioBar: View {
 
 #Preview {
     RecordingView(topicId: UUID())
-        .environmentObject(TopicStore())
+        .environmentObject(TopicRepository())
 }

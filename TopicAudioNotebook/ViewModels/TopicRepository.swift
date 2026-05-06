@@ -1,12 +1,40 @@
 import Foundation
 import Combine
 
+protocol TopicRepositoryProtocol: AnyObject {
+    var topics: [Topic] { get }
+    var topicsPublisher: AnyPublisher<[Topic], Never> { get }
+    var isLoading: Bool { get }
+    var errorMessage: String? { get }
+    
+    func addTopic(name: String, description: String, color: TopicColor)
+    func updateTopic(_ topic: Topic)
+    func deleteTopic(_ topic: Topic)
+    
+    func addRecording(to topicId: UUID, title: String, fileURL: URL, duration: TimeInterval)
+    func deleteRecording(_ recording: Recording, from topicId: UUID)
+    
+    func transcribeRecording(recordingId: UUID, in topicId: UUID) async
+    func retryTranscription(for recording: Recording, in topicId: UUID)
+    
+    func generateRecordingSummary(recordingId: UUID, in topicId: UUID) async
+    func consolidateSummary(for topicId: UUID) async
+    
+    func getRecordingsDirectory() -> URL
+    func switchStorage(to type: StorageType) async
+    var currentStorageType: StorageType { get }
+}
+
 @MainActor
-class TopicStore: ObservableObject {
-    @Published var topics: [Topic] = []
-    @Published var isLoading = false
+final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
+    @Published private(set) var topics: [Topic] = []
+    @Published private(set) var isLoading = false
     @Published var errorMessage: String?
-    @Published var currentStorageType: StorageType = .file
+    @Published private(set) var currentStorageType: StorageType = .file
+    
+    var topicsPublisher: AnyPublisher<[Topic], Never> {
+        $topics.eraseToAnyPublisher()
+    }
     
     private let fileManager = FileManager.default
     private let storageManager = StorageManager.shared
@@ -170,7 +198,7 @@ class TopicStore: ObservableObject {
     
     // MARK: - Persistence
     
-    func saveTopics() {
+    private func saveTopics() {
         Task {
             do {
                 try await storageManager.saveTopics(topics)
@@ -180,7 +208,7 @@ class TopicStore: ObservableObject {
         }
     }
     
-    func loadTopics() async {
+    private func loadTopics() async {
         do {
             topics = try await storageManager.loadTopics()
         } catch {
@@ -218,5 +246,13 @@ class TopicStore: ObservableObject {
         }
         
         return recordingsDir
+    }
+    
+    func topic(for id: UUID) -> Topic? {
+        topics.first { $0.id == id }
+    }
+    
+    func recording(id: UUID, in topicId: UUID) -> Recording? {
+        topic(for: topicId)?.recordings.first { $0.id == id }
     }
 }

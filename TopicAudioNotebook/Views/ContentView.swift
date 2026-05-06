@@ -1,50 +1,51 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var topicStore: TopicStore
-    @State private var showingAddTopic = false
-    @State private var showingSettings = false
+    @EnvironmentObject var repository: TopicRepository
+    @StateObject var viewModel: TopicsListViewModel
     
     var body: some View {
         NavigationStack {
             ZStack {
-                if topicStore.topics.isEmpty {
-                    EmptyStateView(showingAddTopic: $showingAddTopic)
+                if viewModel.topics.isEmpty {
+                    EmptyStateView(onAddTopic: viewModel.presentAddTopic)
                 } else {
-                    TopicListView(showingAddTopic: $showingAddTopic)
+                    TopicListView(
+                        topics: viewModel.topics,
+                        onDelete: viewModel.deleteTopic,
+                        repository: repository
+                    )
                 }
             }
             .navigationTitle("Topics")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showingSettings = true
-                    } label: {
+                    Button(action: viewModel.presentSettings) {
                         Image(systemName: "gear")
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingAddTopic = true
-                    } label: {
+                    Button(action: viewModel.presentAddTopic) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                     }
                 }
             }
-            .sheet(isPresented: $showingAddTopic) {
-                AddTopicView()
+            .sheet(isPresented: $viewModel.showingAddTopic) {
+                AddTopicView(viewModel: AddTopicViewModel(repository: repository) {
+                    viewModel.showingAddTopic = false
+                })
             }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
+            .sheet(isPresented: $viewModel.showingSettings) {
+                SettingsView(viewModel: SettingsViewModel(repository: repository))
             }
         }
     }
 }
 
 struct EmptyStateView: View {
-    @Binding var showingAddTopic: Bool
+    let onAddTopic: () -> Void
     
     var body: some View {
         VStack(spacing: 24) {
@@ -63,9 +64,7 @@ struct EmptyStateView: View {
                     .multilineTextAlignment(.center)
             }
             
-            Button {
-                showingAddTopic = true
-            } label: {
+            Button(action: onAddTopic) {
                 Label("Create Topic", systemImage: "plus")
                     .font(.headline)
                     .padding(.horizontal, 24)
@@ -78,25 +77,22 @@ struct EmptyStateView: View {
 }
 
 struct TopicListView: View {
-    @EnvironmentObject var topicStore: TopicStore
-    @Binding var showingAddTopic: Bool
+    let topics: [Topic]
+    let onDelete: (IndexSet) -> Void
+    let repository: TopicRepository
     
     var body: some View {
         List {
-            ForEach(topicStore.topics) { topic in
-                NavigationLink(destination: TopicDetailView(topic: topic)) {
+            ForEach(topics) { topic in
+                NavigationLink(destination: TopicDetailView(
+                    viewModel: TopicDetailViewModel(topicId: topic.id, repository: repository)
+                )) {
                     TopicRowView(topic: topic)
                 }
             }
-            .onDelete(perform: deleteTopic)
+            .onDelete(perform: onDelete)
         }
         .listStyle(.insetGrouped)
-    }
-    
-    private func deleteTopic(at offsets: IndexSet) {
-        for index in offsets {
-            topicStore.deleteTopic(topicStore.topics[index])
-        }
     }
 }
 
@@ -156,6 +152,7 @@ struct TopicRowView: View {
 }
 
 #Preview {
-    ContentView()
-        .environmentObject(TopicStore())
+    let repository = TopicRepository()
+    return ContentView(viewModel: TopicsListViewModel(repository: repository))
+        .environmentObject(repository)
 }

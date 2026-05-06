@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct TopicAudioNotebookApp: App {
-    @StateObject private var topicStore = TopicStore()
+    @StateObject private var repository = TopicRepository()
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(topicStore)
+            ContentView(viewModel: TopicsListViewModel(repository: repository))
+                .environmentObject(repository)
         }
     }
 }

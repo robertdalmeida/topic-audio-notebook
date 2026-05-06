@@ -1,27 +1,22 @@
 import SwiftUI
 
 struct AddTopicView: View {
-    @EnvironmentObject var topicStore: TopicStore
-    @Environment(\.dismiss) private var dismiss
-    
-    @State private var name = ""
-    @State private var description = ""
-    @State private var selectedColor: TopicColor = .blue
+    @StateObject var viewModel: AddTopicViewModel
     
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Topic Name", text: $name)
-                    TextField("Description (optional)", text: $description, axis: .vertical)
+                    TextField("Topic Name", text: $viewModel.name)
+                    TextField("Description (optional)", text: $viewModel.description, axis: .vertical)
                         .lineLimit(3...6)
                 }
                 
                 Section("Color") {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
                         ForEach(TopicColor.allCases, id: \.self) { color in
-                            ColorButton(color: color, isSelected: selectedColor == color) {
-                                selectedColor = color
+                            ColorButton(color: color, isSelected: viewModel.selectedColor == color) {
+                                viewModel.selectColor(color)
                             }
                         }
                     }
@@ -32,17 +27,12 @@ struct AddTopicView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel", action: viewModel.cancel)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        topicStore.addTopic(name: name, description: description, color: selectedColor)
-                        dismiss()
-                    }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    Button("Create", action: viewModel.createTopic)
+                        .disabled(!viewModel.canCreate)
                 }
             }
         }
@@ -90,6 +80,7 @@ struct ColorButton: View {
 }
 
 #Preview {
-    AddTopicView()
-        .environmentObject(TopicStore())
+    let repository = TopicRepository()
+    return AddTopicView(viewModel: AddTopicViewModel(repository: repository, onDismiss: {}))
+        .environmentObject(repository)
 }
