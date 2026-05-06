@@ -92,6 +92,7 @@ struct TopicDetailView: View {
         Section {
             TopicStatsSection(
                 recordingsCount: viewModel.topic.activeRecordings.count,
+                notesCount: viewModel.topic.activeNotes.count,
                 transcribedCount: viewModel.topic.transcribedRecordingsCount,
                 formattedDuration: viewModel.formattedTotalDuration
             )
