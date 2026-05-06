@@ -113,7 +113,7 @@ struct SettingsView: View {
             .padding(.vertical, 4)
             
             Picker("Provider", selection: $viewModel.selectedSummarizationProvider) {
-                ForEach(SummarizationProvider.allCases, id: \.self) { provider in
+                ForEach(SummarizationProvider.availableProviders, id: \.self) { provider in
                     HStack {
                         Image(systemName: provider.icon)
                         Text(provider.rawValue)
@@ -121,15 +121,24 @@ struct SettingsView: View {
                     .tag(provider)
                 }
             }
-            .pickerStyle(.segmented)
             .onChange(of: viewModel.selectedSummarizationProvider) { _, newValue in
                 viewModel.onSummarizationProviderChanged(to: newValue)
             }
         } header: {
             Text("Summarization")
         } footer: {
-            Text("On-Device uses Apple's NaturalLanguage framework and works offline. OpenAI provides higher quality summaries but requires an API key.")
+            Text(summarizationFooterText)
         }
+    }
+    
+    private var summarizationFooterText: String {
+        var parts: [String] = []
+        parts.append("On-Device uses Apple's NaturalLanguage framework and works offline.")
+        if SummarizationProvider.foundationModels.isAvailable {
+            parts.append("Apple Intelligence provides high-quality on-device AI summaries.")
+        }
+        parts.append("OpenAI provides cloud-based summaries but requires an API key.")
+        return parts.joined(separator: " ")
     }
     
     // MARK: - API Key Section

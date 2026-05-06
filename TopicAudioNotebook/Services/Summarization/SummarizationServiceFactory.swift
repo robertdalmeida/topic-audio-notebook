@@ -5,10 +5,15 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     private let onDeviceService = OnDeviceSummarizationService()
     private let openAIService = OpenAISummarizationService()
+    private var foundationModelsService: (any SummarizationService)?
     
     private static let providerKey = "SummarizationProvider"
     
-    private init() {}
+    private init() {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            foundationModelsService = FoundationModelsSummarizationService()
+        }
+    }
     
     var currentProvider: SummarizationProvider {
         get {
@@ -27,6 +32,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
         switch currentProvider {
         case .onDevice:
             return onDeviceService
+        case .foundationModels:
+            return foundationModelsService ?? onDeviceService
         case .openAI:
             return openAIService
         }
@@ -36,9 +43,15 @@ final class SummarizationServiceFactory: @unchecked Sendable {
         switch provider {
         case .onDevice:
             return onDeviceService
+        case .foundationModels:
+            return foundationModelsService ?? onDeviceService
         case .openAI:
             return openAIService
         }
+    }
+    
+    var isFoundationModelsAvailable: Bool {
+        FoundationModelsAvailability.isAvailable
     }
     
     func setProvider(_ provider: SummarizationProvider) {

@@ -12,12 +12,15 @@ struct SummaryResult: Sendable {
 
 enum SummarizationProvider: String, CaseIterable, Codable {
     case onDevice = "On-Device"
+    case foundationModels = "Apple Intelligence"
     case openAI = "OpenAI"
     
     var description: String {
         switch self {
         case .onDevice:
             return "Uses Apple's NaturalLanguage framework for privacy-focused, offline summarization"
+        case .foundationModels:
+            return "Uses Apple Intelligence for high-quality on-device AI summaries (iOS 26+)"
         case .openAI:
             return "Uses OpenAI GPT-4 for high-quality AI summaries (requires API key)"
         }
@@ -27,9 +30,26 @@ enum SummarizationProvider: String, CaseIterable, Codable {
         switch self {
         case .onDevice:
             return "iphone"
+        case .foundationModels:
+            return "apple.intelligence"
         case .openAI:
             return "cloud"
         }
+    }
+    
+    var isAvailable: Bool {
+        switch self {
+        case .onDevice:
+            return true
+        case .foundationModels:
+            return FoundationModelsAvailability.isAvailable
+        case .openAI:
+            return true
+        }
+    }
+    
+    static var availableProviders: [SummarizationProvider] {
+        allCases.filter { $0.isAvailable }
     }
 }
 
