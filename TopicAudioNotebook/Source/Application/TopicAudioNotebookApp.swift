@@ -6,7 +6,7 @@ struct TopicAudioNotebookApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: TopicsListViewModel(repository: repository))
+            RootView(repository: repository)
                 .environmentObject(repository)
         }
     }

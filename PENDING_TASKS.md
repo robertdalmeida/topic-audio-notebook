@@ -1,5 +1,10 @@
 # Pending Tasks & Feature Roadmap
 
+Make the key points int he summary view selectable so that i can copy using my mouse pointer on the mac target.
+
+When the model is loading int he SummaryView, it shows a loading indicator there. But when i go to a recordingView and see the summary, it doesn't show the loading and i can tap it. Make it so that when the model is loading anywhere in any screen, it shows a loading indicator in the recordingView as well or any other place where this summary feature is being used. 
+
+
 ## Phase 1: Core Enhancements (High Priority)
 
 ### Audio Playback

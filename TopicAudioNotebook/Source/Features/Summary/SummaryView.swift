@@ -25,13 +25,11 @@ struct SummaryView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            content
-                .navigationTitle("Summary")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { toolbarContent }
-                .task { await viewModel.onAppear() }
-        }
+        content
+            .navigationTitle("Summary")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { toolbarContent }
+            .task { await viewModel.onAppear() }
     }
     
     // MARK: - Main Content
@@ -52,11 +50,6 @@ struct SummaryView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .confirmationAction) {
-            Button("Done") { dismiss() }
-                .disabled(viewModel.isRegenerating)
-        }
-        
         if viewModel.hasSummary {
             ToolbarItem(placement: .primaryAction) {
                 ShareLink(item: viewModel.shareContent) {

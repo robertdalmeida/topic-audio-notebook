@@ -17,13 +17,6 @@ struct TopicDetailView: View {
         .listStyle(.insetGrouped)
         .navigationTitle(viewModel.topic.name)
         .toolbar { topToolbar }
-        .sheet(isPresented: $viewModel.showingSummary) {
-            SummaryView(
-                topicId: viewModel.topic.id,
-                repository: repository,
-                onRegenerate: viewModel.generateTopicSummaryAsync
-            )
-        }
         .sheet(isPresented: $viewModel.showingNoteEditor) {
             NoteEditorView(note: viewModel.editingNote) { content in
                 viewModel.saveNote(content: content)
@@ -113,7 +106,13 @@ struct TopicDetailView: View {
                 Text("Topic Summary")
                 Spacer()
                 if viewModel.hasSummary {
-                    Button(action: viewModel.presentSummary) {
+                    NavigationLink {
+                        SummaryView(
+                            topicId: viewModel.topic.id,
+                            repository: repository,
+                            onRegenerate: viewModel.generateTopicSummaryAsync
+                        )
+                    } label: {
                         Text("View Full")
                             .font(.caption)
                     }
