@@ -43,25 +43,10 @@ private struct TranscriptHeader: View {
                     Image(systemName: "doc.on.doc")
                         .font(.subheadline)
                 }
-            }
-            
-            StatusBadge(
-                status: status.rawValue,
-                icon: status.iconName,
-                color: statusColor
-            )
+            }            
         }
     }
-    
-    private var statusColor: Color {
-        switch status {
-        case .pending: return .orange
-        case .inProgress: return .blue
-        case .completed: return .green
-        case .failed: return .red
-        }
-    }
-    
+
     private func copyToClipboard(_ text: String) {
         #if os(iOS)
         UIPasteboard.general.string = text
