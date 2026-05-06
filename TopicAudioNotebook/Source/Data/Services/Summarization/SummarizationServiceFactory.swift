@@ -6,6 +6,7 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     private let onDeviceService = OnDeviceSummarizationService()
     private let openAIService = OpenAISummarizationService()
     private let mlxService = MLXSummarizationService()
+    private let mlxLlamaService = MLXLlamaSummarizationService()
     private var foundationModelsService: (any SummarizationService)?
     
     private static let providerKey = "SummarizationProvider"
@@ -37,6 +38,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
             return foundationModelsService ?? onDeviceService
         case .mlxPhi:
             return mlxService
+        case .mlxLlama:
+            return mlxLlamaService
         case .openAI:
             return openAIService
         }
@@ -50,6 +53,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
             return foundationModelsService ?? onDeviceService
         case .mlxPhi:
             return mlxService
+        case .mlxLlama:
+            return mlxLlamaService
         case .openAI:
             return openAIService
         }

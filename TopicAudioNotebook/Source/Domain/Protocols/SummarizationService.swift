@@ -14,6 +14,7 @@ enum SummarizationProvider: String, CaseIterable, Codable {
     case onDevice = "On-Device"
     case foundationModels = "Apple Intelligence"
     case mlxPhi = "Phi-3.5 (MLX)"
+    case mlxLlama = "Llama-3.2 (MLX)"
     case openAI = "OpenAI"
     
     var description: String {
@@ -24,6 +25,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
             return "Uses Apple Intelligence for high-quality on-device AI summaries (iOS 26+)"
         case .mlxPhi:
             return "Uses Phi-3.5 Mini via MLX for powerful on-device AI summaries"
+        case .mlxLlama:
+            return "Uses Llama-3.2-1B-Instruct (4-bit) via MLX for lightweight on-device AI summaries"
         case .openAI:
             return "Uses OpenAI GPT-4 for high-quality AI summaries (requires API key)"
         }
@@ -37,6 +40,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
             return "apple.intelligence"
         case .mlxPhi:
             return "cpu"
+        case .mlxLlama:
+            return "memorychip"
         case .openAI:
             return "cloud"
         }
@@ -49,6 +54,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
         case .foundationModels:
             return FoundationModelsAvailability.isAvailable
         case .mlxPhi:
+            return MLXAvailability.isAvailable
+        case .mlxLlama:
             return MLXAvailability.isAvailable
         case .openAI:
             return true
