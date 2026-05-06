@@ -137,6 +137,9 @@ struct SettingsView: View {
         if SummarizationProvider.foundationModels.isAvailable {
             parts.append("Apple Intelligence provides high-quality on-device AI summaries.")
         }
+        if SummarizationProvider.mlxPhi.isAvailable {
+            parts.append("Phi-3.5 (MLX) runs locally using Apple's MLX framework.")
+        }
         parts.append("OpenAI provides cloud-based summaries but requires an API key.")
         return parts.joined(separator: " ")
     }

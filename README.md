@@ -39,6 +39,23 @@ For AI-powered summary consolidation:
 
 Without an API key, the app will generate a basic summary combining all transcripts.
 
+### Optional: MLX Phi-3.5 Support (macOS only)
+
+For on-device AI summarization using Phi-3.5 via MLX:
+
+1. Add the MLX-Swift Examples package to your project:
+   - In Xcode, go to File → Add Package Dependencies
+   - Enter: `https://github.com/ml-explore/mlx-swift-examples`
+   - Add the `MLXLLM` and `MLXLMCommon` products to your target
+
+2. The Phi-3.5 option will automatically appear in Settings when MLX is available
+
+**Note**: MLX requires macOS with Apple Silicon. The model (~2GB) downloads on first use.
+
+### Optional: Apple Intelligence (iOS 26+)
+
+On devices running iOS 26 or later with Apple Intelligence enabled, the "Apple Intelligence" summarization option will automatically appear in Settings.
+
 ## Architecture
 
 ```

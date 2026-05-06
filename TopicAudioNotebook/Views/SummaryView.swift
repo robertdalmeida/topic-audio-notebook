@@ -12,46 +12,34 @@ enum SummaryDisplayMode: String, CaseIterable {
 
 struct SummaryView: View {
     @Environment(\.dismiss) private var dismiss
-    let topic: Topic
-    let onRegenerate: (() -> Void)?
+    @EnvironmentObject var repository: TopicRepository
+    let topicId: UUID
+    let onRegenerate: (() async -> Void)?
     
     @State private var displayMode: SummaryDisplayMode = .points
+    @State private var isServiceReady = true
+    @State private var isServiceLoading = false
+    @State private var loadingProgress: Double = 0.0
+    @State private var loadingError: String?
+    @State private var isRegenerating = false
     
-    init(topic: Topic, onRegenerate: (() -> Void)? = nil) {
-        self.topic = topic
+    private var topic: Topic? {
+        repository.topics.first { $0.id == topicId }
+    }
+    
+    init(topicId: UUID, onRegenerate: (() async -> Void)? = nil) {
+        self.topicId = topicId
         self.onRegenerate = onRegenerate
     }
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack {
-                        Label("\(topic.recordings.count) recordings", systemImage: "waveform")
-                        Spacer()
-                        Label("\(topic.transcribedRecordingsCount) transcribed", systemImage: "doc.text")
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    
-                    if topic.consolidatedSummary != nil || topic.consolidatedPoints != nil {
-                        Picker("Display Mode", selection: $displayMode) {
-                            ForEach(SummaryDisplayMode.allCases, id: \.self) { mode in
-                                Text(mode.rawValue).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    
-                    Divider()
-                    
-                    if displayMode == .points {
-                        pointsView
-                    } else {
-                        longFormView
-                    }
+            Group {
+                if let topic {
+                    summaryContent(topic: topic)
+                } else {
+                    ContentUnavailableView("Topic Not Found", systemImage: "questionmark.circle")
                 }
-                .padding()
             }
             .navigationTitle("Summary")
             .navigationBarTitleDisplayMode(.inline)
@@ -60,36 +48,167 @@ struct SummaryView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .disabled(isRegenerating)
                 }
                 
-                if topic.consolidatedSummary != nil {
+                if let topic, topic.consolidatedSummary != nil {
                     ToolbarItem(placement: .primaryAction) {
-                        Menu {
-                            ShareLink(item: shareContent) {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                            }
-                            
-                            if let onRegenerate {
-                                Divider()
-                                
-                                Button(action: {
-                                    onRegenerate()
-                                    dismiss()
-                                }) {
-                                    Label("Regenerate Summary", systemImage: "arrow.clockwise")
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
+                        ShareLink(item: shareContent) {
+                            Image(systemName: "square.and.arrow.up")
                         }
                     }
                 }
+            }
+            .task {
+                await checkServiceReadiness()
             }
         }
     }
     
     @ViewBuilder
-    private var pointsView: some View {
+    private func summaryContent(topic: Topic) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Label("\(topic.recordings.count) recordings", systemImage: "waveform")
+                    Spacer()
+                    Label("\(topic.transcribedRecordingsCount) transcribed", systemImage: "doc.text")
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                
+                if topic.consolidatedSummary != nil || topic.consolidatedPoints != nil {
+                    Picker("Display Mode", selection: $displayMode) {
+                        ForEach(SummaryDisplayMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                Divider()
+                
+                if isRegenerating {
+                    regeneratingView
+                } else if displayMode == .points {
+                    pointsView(topic: topic)
+                } else {
+                    longFormView(topic: topic)
+                }
+                
+                if onRegenerate != nil {
+                    regenerateSection
+                }
+            }
+            .padding()
+        }
+    }
+    
+    @ViewBuilder
+    private var regeneratingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            
+            Text("Regenerating summary...")
+                .font(.headline)
+            
+            Text("This may take a moment")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+    
+    @ViewBuilder
+    private var regenerateSection: some View {
+        VStack(spacing: 12) {
+            Divider()
+                .padding(.top, 8)
+            
+            VStack(spacing: 8) {
+                Button {
+                    Task {
+                        await performRegeneration()
+                    }
+                } label: {
+                    HStack {
+                        if isServiceLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text(isServiceLoading ? "Loading AI Model..." : "Regenerate Summary")
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!isServiceReady || isServiceLoading || isRegenerating)
+                
+                if isServiceLoading {
+                    VStack(spacing: 6) {
+                        ProgressView(value: loadingProgress)
+                            .progressViewStyle(.linear)
+                        
+                        Text("Loading AI model: \(Int(loadingProgress * 100))%")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else if let error = loadingError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                } else if !isServiceReady {
+                    Text("AI model not ready")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.top, 8)
+    }
+    
+    private func performRegeneration() async {
+        guard let onRegenerate else { return }
+        
+        isRegenerating = true
+        await onRegenerate()
+        isRegenerating = false
+    }
+    
+    private func checkServiceReadiness() async {
+        let factory = SummarizationServiceFactory.shared
+        
+        isServiceReady = await factory.isServiceReady()
+        
+        if isServiceReady {
+            return
+        }
+        
+        if factory.requiresPreloading() {
+            isServiceLoading = true
+            loadingProgress = 0.0
+            loadingError = nil
+            
+            do {
+                try await factory.preloadCurrentService { progress in
+                    Task { @MainActor in
+                        loadingProgress = progress
+                    }
+                }
+                isServiceReady = true
+            } catch {
+                loadingError = "Failed to load model: \(error.localizedDescription)"
+            }
+            
+            isServiceLoading = false
+        }
+    }
+    
+    @ViewBuilder
+    private func pointsView(topic: Topic) -> some View {
         if let points = topic.consolidatedPoints, !points.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -141,7 +260,7 @@ struct SummaryView: View {
     }
     
     @ViewBuilder
-    private var longFormView: some View {
+    private func longFormView(topic: Topic) -> some View {
         if let summary = topic.consolidatedSummary {
             MarkdownTextView(text: summary)
         } else {
@@ -154,6 +273,7 @@ struct SummaryView: View {
     }
     
     private var shareContent: String {
+        guard let topic else { return "" }
         var content = "# \(topic.name) - Summary\n\n"
         
         if let points = topic.consolidatedPoints, !points.isEmpty {
@@ -250,7 +370,7 @@ enum MarkdownBlockType {
 }
 
 #Preview {
-    SummaryView(topic: Topic(
+    let topic = Topic(
         name: "Sample Topic",
         consolidatedSummary: """
         # Executive Summary
@@ -277,5 +397,8 @@ enum MarkdownBlockType {
         
         *Generated from 3 recordings*
         """
-    ))
+    )
+    let repository = TopicRepository()
+    return SummaryView(topicId: topic.id)
+        .environmentObject(repository)
 }

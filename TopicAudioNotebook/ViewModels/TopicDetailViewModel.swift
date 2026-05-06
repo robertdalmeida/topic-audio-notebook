@@ -138,6 +138,12 @@ final class TopicDetailViewModel: ObservableObject {
         }
     }
     
+    func generateTopicSummaryAsync() async {
+        isGeneratingTopicSummary = true
+        await repository.consolidateSummary(for: topicId)
+        isGeneratingTopicSummary = false
+    }
+    
     func presentSummary() {
         showingSummary = true
     }

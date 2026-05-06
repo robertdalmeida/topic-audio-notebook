@@ -5,6 +5,7 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     private let onDeviceService = OnDeviceSummarizationService()
     private let openAIService = OpenAISummarizationService()
+    private let mlxService = MLXSummarizationService()
     private var foundationModelsService: (any SummarizationService)?
     
     private static let providerKey = "SummarizationProvider"
@@ -34,6 +35,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
             return onDeviceService
         case .foundationModels:
             return foundationModelsService ?? onDeviceService
+        case .mlxPhi:
+            return mlxService
         case .openAI:
             return openAIService
         }
@@ -45,6 +48,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
             return onDeviceService
         case .foundationModels:
             return foundationModelsService ?? onDeviceService
+        case .mlxPhi:
+            return mlxService
         case .openAI:
             return openAIService
         }
@@ -56,6 +61,41 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     func setProvider(_ provider: SummarizationProvider) {
         currentProvider = provider
+    }
+    
+    func isServiceReady() async -> Bool {
+        let service = currentService
+        if let loadable = service as? LoadableSummarizationService {
+            return await loadable.isLoaded
+        }
+        return true
+    }
+    
+    func isServiceLoading() async -> Bool {
+        let service = currentService
+        if let loadable = service as? LoadableSummarizationService {
+            return await loadable.isLoading
+        }
+        return false
+    }
+    
+    func preloadCurrentService(progressHandler: (@Sendable (Double) -> Void)? = nil) async throws {
+        let service = currentService
+        if let loadable = service as? LoadableSummarizationService {
+            try await loadable.preloadModel(progressHandler: progressHandler)
+        }
+    }
+    
+    func getLoadingProgress() async -> Double {
+        let service = currentService
+        if let loadable = service as? LoadableSummarizationService {
+            return await loadable.loadingProgress
+        }
+        return 1.0
+    }
+    
+    func requiresPreloading() -> Bool {
+        return currentService is LoadableSummarizationService
     }
     
     func hasOpenAIKey() -> Bool {

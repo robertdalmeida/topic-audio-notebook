@@ -7,23 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2199178C2FAB733A007DF117 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 2199178B2FAB733A007DF117 /* MLXLLM */; };
+		2199178E2FAB733A007DF117 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 2199178D2FAB733A007DF117 /* MLXLMCommon */; };
 		A1000001229F0001 /* TopicAudioNotebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001229F0000 /* TopicAudioNotebookApp.swift */; };
 		A1000002229F0002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229F0000 /* ContentView.swift */; };
 		A1000003229F0003 /* Topic.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000003229F0000 /* Topic.swift */; };
 		A1000004229F0004 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229F0000 /* Recording.swift */; };
-		A1000026229F0026 /* TopicRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229F0000 /* TopicRepository.swift */; };
-		A1000027229F0027 /* TopicsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000027229F0000 /* TopicsListViewModel.swift */; };
-		A1000028229F0028 /* TopicDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229F0000 /* TopicDetailViewModel.swift */; };
-		A1000029229F0029 /* RecordingDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000029229F0000 /* RecordingDetailViewModel.swift */; };
-		A100002A229F002A /* RecordingRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229F0000 /* RecordingRowViewModel.swift */; };
-		A100002B229F002B /* AddTopicViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002B229F0000 /* AddTopicViewModel.swift */; };
-		A100002C229F002C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C229F0000 /* SettingsViewModel.swift */; };
-		A100002D229F002D /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002D229F0000 /* Note.swift */; };
-		A100002E229F002E /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E229F0000 /* NoteEditorView.swift */; };
-		A100002F229F002F /* NoteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002F229F0000 /* NoteRowView.swift */; };
-		A1000031229F0031 /* RecordingSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000031229F0000 /* RecordingSessionView.swift */; };
-		A1000032229F0032 /* LiveTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032229F0000 /* LiveTranscriber.swift */; };
-		A1000033229F0033 /* ArchivedItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000033229F0000 /* ArchivedItemsView.swift */; };
 		A1000006229F0006 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000006229F0000 /* AudioRecorder.swift */; };
 		A1000007229F0007 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000007229F0000 /* TranscriptionService.swift */; };
 		A1000008229F0008 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008229F0000 /* AIService.swift */; };
@@ -45,7 +34,6 @@
 		A1000019229F0019 /* OnDeviceSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019229F0000 /* OnDeviceSummarizationService.swift */; };
 		A100001A229F001A /* OpenAISummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229F0000 /* OpenAISummarizationService.swift */; };
 		A100001B229F001B /* SummarizationServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001B229F0000 /* SummarizationServiceFactory.swift */; };
-		A1000034229F0034 /* FoundationModelsSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000034229F0000 /* FoundationModelsSummarizationService.swift */; };
 		A100001C229F001C /* StatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229F0000 /* StatCard.swift */; };
 		A100001D229F001D /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001D229F0000 /* StatusBadge.swift */; };
 		A100001E229F001E /* TranscriptionStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229F0000 /* TranscriptionStatusBadge.swift */; };
@@ -56,6 +44,21 @@
 		A1000023229F0023 /* AudioPlayerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023229F0000 /* AudioPlayerSection.swift */; };
 		A1000024229F0024 /* TranscriptSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229F0000 /* TranscriptSection.swift */; };
 		A1000025229F0025 /* RecordingSummarySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025229F0000 /* RecordingSummarySection.swift */; };
+		A1000026229F0026 /* TopicRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229F0000 /* TopicRepository.swift */; };
+		A1000027229F0027 /* TopicsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000027229F0000 /* TopicsListViewModel.swift */; };
+		A1000028229F0028 /* TopicDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229F0000 /* TopicDetailViewModel.swift */; };
+		A1000029229F0029 /* RecordingDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000029229F0000 /* RecordingDetailViewModel.swift */; };
+		A100002A229F002A /* RecordingRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229F0000 /* RecordingRowViewModel.swift */; };
+		A100002B229F002B /* AddTopicViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002B229F0000 /* AddTopicViewModel.swift */; };
+		A100002C229F002C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C229F0000 /* SettingsViewModel.swift */; };
+		A100002D229F002D /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002D229F0000 /* Note.swift */; };
+		A100002E229F002E /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E229F0000 /* NoteEditorView.swift */; };
+		A100002F229F002F /* NoteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002F229F0000 /* NoteRowView.swift */; };
+		A1000031229F0031 /* RecordingSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000031229F0000 /* RecordingSessionView.swift */; };
+		A1000032229F0032 /* LiveTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032229F0000 /* LiveTranscriber.swift */; };
+		A1000033229F0033 /* ArchivedItemsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000033229F0000 /* ArchivedItemsView.swift */; };
+		A1000034229F0034 /* FoundationModelsSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000034229F0000 /* FoundationModelsSummarizationService.swift */; };
+		A1000035229F0035 /* MLXSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000035229F0000 /* MLXSummarizationService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,19 +67,6 @@
 		A1000002229F0000 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1000003229F0000 /* Topic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Topic.swift; sourceTree = "<group>"; };
 		A1000004229F0000 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
-		A1000026229F0000 /* TopicRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicRepository.swift; sourceTree = "<group>"; };
-		A1000027229F0000 /* TopicsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicsListViewModel.swift; sourceTree = "<group>"; };
-		A1000028229F0000 /* TopicDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicDetailViewModel.swift; sourceTree = "<group>"; };
-		A1000029229F0000 /* RecordingDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingDetailViewModel.swift; sourceTree = "<group>"; };
-		A100002A229F0000 /* RecordingRowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingRowViewModel.swift; sourceTree = "<group>"; };
-		A100002B229F0000 /* AddTopicViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTopicViewModel.swift; sourceTree = "<group>"; };
-		A100002C229F0000 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
-		A100002D229F0000 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
-		A100002E229F0000 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
-		A100002F229F0000 /* NoteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteRowView.swift; sourceTree = "<group>"; };
-		A1000031229F0000 /* RecordingSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSessionView.swift; sourceTree = "<group>"; };
-		A1000032229F0000 /* LiveTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranscriber.swift; sourceTree = "<group>"; };
-		A1000033229F0000 /* ArchivedItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedItemsView.swift; sourceTree = "<group>"; };
 		A1000006229F0000 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		A1000007229F0000 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		A1000008229F0000 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
@@ -99,7 +89,6 @@
 		A1000019229F0000 /* OnDeviceSummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceSummarizationService.swift; sourceTree = "<group>"; };
 		A100001A229F0000 /* OpenAISummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAISummarizationService.swift; sourceTree = "<group>"; };
 		A100001B229F0000 /* SummarizationServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummarizationServiceFactory.swift; sourceTree = "<group>"; };
-		A1000034229F0000 /* FoundationModelsSummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsSummarizationService.swift; sourceTree = "<group>"; };
 		A100001C229F0000 /* StatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCard.swift; sourceTree = "<group>"; };
 		A100001D229F0000 /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
 		A100001E229F0000 /* TranscriptionStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionStatusBadge.swift; sourceTree = "<group>"; };
@@ -110,6 +99,21 @@
 		A1000023229F0000 /* AudioPlayerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerSection.swift; sourceTree = "<group>"; };
 		A1000024229F0000 /* TranscriptSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptSection.swift; sourceTree = "<group>"; };
 		A1000025229F0000 /* RecordingSummarySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSummarySection.swift; sourceTree = "<group>"; };
+		A1000026229F0000 /* TopicRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicRepository.swift; sourceTree = "<group>"; };
+		A1000027229F0000 /* TopicsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicsListViewModel.swift; sourceTree = "<group>"; };
+		A1000028229F0000 /* TopicDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicDetailViewModel.swift; sourceTree = "<group>"; };
+		A1000029229F0000 /* RecordingDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingDetailViewModel.swift; sourceTree = "<group>"; };
+		A100002A229F0000 /* RecordingRowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingRowViewModel.swift; sourceTree = "<group>"; };
+		A100002B229F0000 /* AddTopicViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTopicViewModel.swift; sourceTree = "<group>"; };
+		A100002C229F0000 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		A100002D229F0000 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		A100002E229F0000 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
+		A100002F229F0000 /* NoteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteRowView.swift; sourceTree = "<group>"; };
+		A1000031229F0000 /* RecordingSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSessionView.swift; sourceTree = "<group>"; };
+		A1000032229F0000 /* LiveTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranscriber.swift; sourceTree = "<group>"; };
+		A1000033229F0000 /* ArchivedItemsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedItemsView.swift; sourceTree = "<group>"; };
+		A1000034229F0000 /* FoundationModelsSummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsSummarizationService.swift; sourceTree = "<group>"; };
+		A1000035229F0000 /* MLXSummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXSummarizationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +121,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2199178E2FAB733A007DF117 /* MLXLMCommon in Frameworks */,
+				2199178C2FAB733A007DF117 /* MLXLLM in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,20 +237,6 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		A10000F4229F0000 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				A1000026229F0000 /* TopicRepository.swift */,
-				A1000027229F0000 /* TopicsListViewModel.swift */,
-				A1000028229F0000 /* TopicDetailViewModel.swift */,
-				A1000029229F0000 /* RecordingDetailViewModel.swift */,
-				A100002A229F0000 /* RecordingRowViewModel.swift */,
-				A100002B229F0000 /* AddTopicViewModel.swift */,
-				A100002C229F0000 /* SettingsViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
 		A10000F2229F0000 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
@@ -263,9 +255,24 @@
 				A1000019229F0000 /* OnDeviceSummarizationService.swift */,
 				A100001A229F0000 /* OpenAISummarizationService.swift */,
 				A1000034229F0000 /* FoundationModelsSummarizationService.swift */,
+				A1000035229F0000 /* MLXSummarizationService.swift */,
 				A100001B229F0000 /* SummarizationServiceFactory.swift */,
 			);
 			path = Summarization;
+			sourceTree = "<group>";
+		};
+		A10000F4229F0000 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A1000026229F0000 /* TopicRepository.swift */,
+				A1000027229F0000 /* TopicsListViewModel.swift */,
+				A1000028229F0000 /* TopicDetailViewModel.swift */,
+				A1000029229F0000 /* RecordingDetailViewModel.swift */,
+				A100002A229F0000 /* RecordingRowViewModel.swift */,
+				A100002B229F0000 /* AddTopicViewModel.swift */,
+				A100002C229F0000 /* SettingsViewModel.swift */,
+			);
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -312,6 +319,9 @@
 				Base,
 			);
 			mainGroup = A10000A0229F0000;
+			packageReferences = (
+				2199178A2FAB733A007DF117 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
+			);
 			productRefGroup = A10000C0229F0000 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -374,6 +384,7 @@
 				A1000019229F0019 /* OnDeviceSummarizationService.swift in Sources */,
 				A100001A229F001A /* OpenAISummarizationService.swift in Sources */,
 				A1000034229F0034 /* FoundationModelsSummarizationService.swift in Sources */,
+				A1000035229F0035 /* MLXSummarizationService.swift in Sources */,
 				A100001B229F001B /* SummarizationServiceFactory.swift in Sources */,
 				A100001C229F001C /* StatCard.swift in Sources */,
 				A100001D229F001D /* StatusBadge.swift in Sources */,
@@ -598,6 +609,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2199178A2FAB733A007DF117 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.29.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2199178B2FAB733A007DF117 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2199178A2FAB733A007DF117 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLLM;
+		};
+		2199178D2FAB733A007DF117 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2199178A2FAB733A007DF117 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLMCommon;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10000A1229F0000 /* Project object */;
 }
