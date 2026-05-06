@@ -56,20 +56,46 @@ struct Topic: Identifiable, Codable {
         color = try container.decode(TopicColor.self, forKey: .color)
     }
     
+    // MARK: - Active Items (non-archived)
+    
+    var activeRecordings: [Recording] {
+        recordings.filter { !$0.isArchived }
+    }
+    
+    var activeNotes: [Note] {
+        notes.filter { !$0.isArchived }
+    }
+    
+    // MARK: - Archived Items
+    
+    var archivedRecordings: [Recording] {
+        recordings.filter { $0.isArchived }
+    }
+    
+    var archivedNotes: [Note] {
+        notes.filter { $0.isArchived }
+    }
+    
+    var hasArchivedItems: Bool {
+        !archivedRecordings.isEmpty || !archivedNotes.isEmpty
+    }
+    
+    // MARK: - Statistics (active items only)
+    
     var transcribedRecordingsCount: Int {
-        recordings.filter { $0.transcriptionStatus == .completed }.count
+        activeRecordings.filter { $0.transcriptionStatus == .completed }.count
     }
     
     var pendingTranscriptionsCount: Int {
-        recordings.filter { $0.transcriptionStatus == .pending || $0.transcriptionStatus == .inProgress }.count
+        activeRecordings.filter { $0.transcriptionStatus == .pending || $0.transcriptionStatus == .inProgress }.count
     }
     
     var allTranscripts: [String] {
-        recordings.compactMap { $0.transcript }
+        activeRecordings.compactMap { $0.transcript }
     }
     
     var allNoteContents: [String] {
-        notes.map { $0.content }
+        activeNotes.map { $0.content }
     }
     
     var allContent: [String] {
@@ -77,11 +103,11 @@ struct Topic: Identifiable, Codable {
     }
     
     var totalDuration: TimeInterval {
-        recordings.reduce(0) { $0 + $1.duration }
+        activeRecordings.reduce(0) { $0 + $1.duration }
     }
     
     var hasContentForSummary: Bool {
-        transcribedRecordingsCount > 0 || !notes.isEmpty
+        transcribedRecordingsCount > 0 || !activeNotes.isEmpty
     }
 }
 

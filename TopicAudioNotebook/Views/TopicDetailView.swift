@@ -12,6 +12,7 @@ struct TopicDetailView: View {
             summarySection
             notesSection
             recordingsSection
+            archivedSection
         }
         .listStyle(.insetGrouped)
         .navigationTitle(viewModel.topic.name)
@@ -26,6 +27,9 @@ struct TopicDetailView: View {
         }
         .fullScreenCover(isPresented: $viewModel.showingRecordingSession) {
             RecordingSessionView(topicId: viewModel.topic.id, topicName: viewModel.topic.name)
+        }
+        .sheet(isPresented: $viewModel.showingArchivedItems) {
+            ArchivedItemsView(viewModel: viewModel)
         }
     }
     
@@ -83,7 +87,7 @@ struct TopicDetailView: View {
     private var statsSection: some View {
         Section {
             TopicStatsSection(
-                recordingsCount: viewModel.topic.recordings.count,
+                recordingsCount: viewModel.topic.activeRecordings.count,
                 transcribedCount: viewModel.topic.transcribedRecordingsCount,
                 formattedDuration: viewModel.formattedTotalDuration
             )
@@ -115,7 +119,7 @@ struct TopicDetailView: View {
     
     private var notesSection: some View {
         Section {
-            if viewModel.topic.notes.isEmpty {
+            if viewModel.topic.activeNotes.isEmpty {
                 ContentUnavailableView {
                     Label("No Notes", systemImage: "note.text")
                 } description: {
@@ -123,21 +127,28 @@ struct TopicDetailView: View {
                 }
                 .listRowBackground(Color.clear)
             } else {
-                ForEach(viewModel.topic.notes) { note in
+                ForEach(viewModel.topic.activeNotes) { note in
                     Button {
                         viewModel.presentEditNote(note)
                     } label: {
                         NoteRowView(note: note)
                     }
                     .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing) {
+                        Button {
+                            viewModel.archiveNote(note)
+                        } label: {
+                            Label("Archive", systemImage: "archivebox")
+                        }
+                        .tint(.orange)
+                    }
                 }
-                .onDelete(perform: viewModel.deleteNote)
             }
         } header: {
             HStack {
                 Text("Notes")
                 Spacer()
-                Text("\(viewModel.topic.notes.count)")
+                Text("\(viewModel.topic.activeNotes.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -146,7 +157,7 @@ struct TopicDetailView: View {
     
     private var recordingsSection: some View {
         Section {
-            if viewModel.topic.recordings.isEmpty {
+            if viewModel.topic.activeRecordings.isEmpty {
                 ContentUnavailableView {
                     Label("No Recordings", systemImage: "waveform")
                 } description: {
@@ -154,22 +165,49 @@ struct TopicDetailView: View {
                 }
                 .listRowBackground(Color.clear)
             } else {
-                ForEach(viewModel.topic.recordings) { recording in
+                ForEach(viewModel.topic.activeRecordings) { recording in
                     NavigationLink(destination: RecordingDetailView(
                         viewModel: viewModel.recordingDetailViewModel(for: recording)
                     )) {
                         RecordingRowView(viewModel: viewModel.recordingRowViewModel(for: recording))
                     }
+                    .swipeActions(edge: .trailing) {
+                        Button {
+                            viewModel.archiveRecording(recording)
+                        } label: {
+                            Label("Archive", systemImage: "archivebox")
+                        }
+                        .tint(.orange)
+                    }
                 }
-                .onDelete(perform: viewModel.deleteRecording)
             }
         } header: {
             HStack {
                 Text("Recordings")
                 Spacer()
-                Text("\(viewModel.topic.recordings.count)")
+                Text("\(viewModel.topic.activeRecordings.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var archivedSection: some View {
+        if viewModel.topic.hasArchivedItems {
+            Section {
+                Button(action: viewModel.presentArchivedItems) {
+                    HStack {
+                        Label("Archived Items", systemImage: "archivebox")
+                        Spacer()
+                        Text("\(viewModel.topic.archivedRecordings.count + viewModel.topic.archivedNotes.count)")
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .foregroundStyle(.primary)
             }
         }
     }

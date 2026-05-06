@@ -10,6 +10,7 @@ final class TopicDetailViewModel: ObservableObject {
     @Published var showingSummary = false
     @Published var showingNoteEditor = false
     @Published var showingRecordingSession = false
+    @Published var showingArchivedItems = false
     @Published var editingNote: Note?
     @Published private(set) var recordingTime: String = "00:00"
     
@@ -172,9 +173,39 @@ final class TopicDetailViewModel: ObservableObject {
     
     func deleteNote(at offsets: IndexSet) {
         for index in offsets {
-            let note = topic.notes[index]
+            let note = topic.activeNotes[index]
             repository.deleteNote(note, from: topicId)
         }
+    }
+    
+    // MARK: - Archive Actions
+    
+    func archiveRecording(_ recording: Recording) {
+        repository.archiveRecording(recording, in: topicId)
+    }
+    
+    func unarchiveRecording(_ recording: Recording) {
+        repository.unarchiveRecording(recording, in: topicId)
+    }
+    
+    func archiveNote(_ note: Note) {
+        repository.archiveNote(note, in: topicId)
+    }
+    
+    func unarchiveNote(_ note: Note) {
+        repository.unarchiveNote(note, in: topicId)
+    }
+    
+    func deleteRecordingPermanently(_ recording: Recording) {
+        repository.deleteRecording(recording, from: topicId)
+    }
+    
+    func deleteNotePermanently(_ note: Note) {
+        repository.deleteNote(note, from: topicId)
+    }
+    
+    func presentArchivedItems() {
+        showingArchivedItems = true
     }
     
     // MARK: - Child ViewModels

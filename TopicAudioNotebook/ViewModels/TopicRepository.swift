@@ -18,6 +18,11 @@ protocol TopicRepositoryProtocol: AnyObject {
     func updateNote(_ note: Note, in topicId: UUID)
     func deleteNote(_ note: Note, from topicId: UUID)
     
+    func archiveRecording(_ recording: Recording, in topicId: UUID)
+    func unarchiveRecording(_ recording: Recording, in topicId: UUID)
+    func archiveNote(_ note: Note, in topicId: UUID)
+    func unarchiveNote(_ note: Note, in topicId: UUID)
+    
     func updateRecordingTranscript(recordingId: UUID, in topicId: UUID, transcript: String)
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async
     func retryTranscription(for recording: Recording, in topicId: UUID)
@@ -158,6 +163,64 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
             Task {
                 await consolidateSummary(for: topicId)
             }
+        }
+    }
+    
+    // MARK: - Archive/Unarchive
+    
+    func archiveRecording(_ recording: Recording, in topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recording.id }) else {
+            return
+        }
+        topics[topicIndex].recordings[recordingIndex].isArchived = true
+        topics[topicIndex].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
+    
+    func unarchiveRecording(_ recording: Recording, in topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recording.id }) else {
+            return
+        }
+        topics[topicIndex].recordings[recordingIndex].isArchived = false
+        topics[topicIndex].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
+    
+    func archiveNote(_ note: Note, in topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let noteIndex = topics[topicIndex].notes.firstIndex(where: { $0.id == note.id }) else {
+            return
+        }
+        topics[topicIndex].notes[noteIndex].isArchived = true
+        topics[topicIndex].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
+    
+    func unarchiveNote(_ note: Note, in topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let noteIndex = topics[topicIndex].notes.firstIndex(where: { $0.id == note.id }) else {
+            return
+        }
+        topics[topicIndex].notes[noteIndex].isArchived = false
+        topics[topicIndex].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
         }
     }
     

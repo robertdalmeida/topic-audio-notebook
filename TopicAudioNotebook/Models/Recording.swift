@@ -11,6 +11,12 @@ struct Recording: Identifiable, Codable {
     var transcriptionStatus: TranscriptionStatus
     var summaryStatus: SummaryStatus
     var createdAt: Date
+    var isArchived: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id, title, fileURL, duration, transcript, summary, summaryPoints
+        case transcriptionStatus, summaryStatus, createdAt, isArchived
+    }
     
     init(
         id: UUID = UUID(),
@@ -22,7 +28,8 @@ struct Recording: Identifiable, Codable {
         summaryPoints: [String]? = nil,
         transcriptionStatus: TranscriptionStatus = .pending,
         summaryStatus: SummaryStatus = .pending,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        isArchived: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -34,6 +41,22 @@ struct Recording: Identifiable, Codable {
         self.transcriptionStatus = transcriptionStatus
         self.summaryStatus = summaryStatus
         self.createdAt = createdAt
+        self.isArchived = isArchived
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        fileURL = try container.decode(URL.self, forKey: .fileURL)
+        duration = try container.decode(TimeInterval.self, forKey: .duration)
+        transcript = try container.decodeIfPresent(String.self, forKey: .transcript)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
+        summaryPoints = try container.decodeIfPresent([String].self, forKey: .summaryPoints)
+        transcriptionStatus = try container.decode(TranscriptionStatus.self, forKey: .transcriptionStatus)
+        summaryStatus = try container.decode(SummaryStatus.self, forKey: .summaryStatus)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
     }
     
     var formattedDuration: String {
