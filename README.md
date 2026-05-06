@@ -56,34 +56,6 @@ For on-device AI summarization using Phi-3.5 via MLX:
 
 On devices running iOS 26 or later with Apple Intelligence enabled, the "Apple Intelligence" summarization option will automatically appear in Settings.
 
-## Architecture
-
-```
-TopicAudioNotebook/
-├── TopicAudioNotebookApp.swift    # App entry point
-├── Models/
-│   ├── Topic.swift                # Topic data model
-│   └── Recording.swift            # Recording data model
-├── Views/
-│   ├── ContentView.swift          # Main dashboard
-│   ├── AddTopicView.swift         # Topic creation
-│   ├── TopicDetailView.swift      # Topic details & recordings
-│   ├── RecordingView.swift        # Audio recording interface
-│   ├── TranscriptView.swift       # Individual transcript view
-│   ├── SummaryView.swift          # Consolidated summary view
-│   └── SettingsView.swift         # App settings
-└── Services/
-    ├── TopicStore.swift           # Data persistence & management
-    ├── AudioRecorder.swift        # Audio recording service
-    ├── TranscriptionService.swift # Speech recognition
-    └── AIService.swift            # OpenAI integration
-```
-
-## Permissions
-
-The app requires:
-- **Microphone**: For audio recording
-- **Speech Recognition**: For transcription
 
 ## License
 
