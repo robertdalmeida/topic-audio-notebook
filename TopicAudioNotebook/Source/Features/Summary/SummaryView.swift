@@ -76,9 +76,11 @@ private struct SummaryContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                RegenerateActionSection(viewModel: viewModel)
-                
-                TopicStatsHeader(topic: topic)
+                HStack {
+                    TopicStatsHeader(topic: topic)
+                    Spacer()
+                    RegenerateActionSection(viewModel: viewModel)
+                }
                 
                 if viewModel.hasSummary {
                     DisplayModePicker(selection: $viewModel.displayMode)
@@ -115,17 +117,14 @@ private struct RegenerateActionSection: View {
     @Bindable var viewModel: SummaryViewModel
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .trailing, spacing: 4) {
             Button {
                 Task { await viewModel.regenerateSummary() }
             } label: {
-                HStack {
-                    buttonIcon
-                    Text(buttonTitle)
-                }
-                .frame(maxWidth: .infinity)
+                buttonIcon
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.small)
             .disabled(!viewModel.canRegenerate)
             
             modelLoadingStatus
@@ -141,30 +140,22 @@ private struct RegenerateActionSection: View {
             Image(systemName: "arrow.clockwise")
         }
     }
-    
-    private var buttonTitle: String {
-        switch viewModel.modelLoadingState {
-        case .loading:
-            return "Loading AI Model..."
-        default:
-            return "Regenerate Summary"
-        }
-    }
-    
+
     @ViewBuilder
     private var modelLoadingStatus: some View {
         switch viewModel.modelLoadingState {
         case .loading(let progress):
-            VStack(spacing: 6) {
+            VStack(alignment: .trailing, spacing: 4) {
                 ProgressView(value: progress)
                     .progressViewStyle(.linear)
-                Text("Loading AI model: \(Int(progress * 100))%")
-                    .font(.caption)
+                    .frame(width: 100)
+                Text("Loading: \(Int(progress * 100))%")
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
         case .failed(let error):
             Text(error)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.red)
         case .idle, .loaded:
             EmptyView()
@@ -178,10 +169,9 @@ private struct TopicStatsHeader: View {
     let topic: Topic
     
     var body: some View {
-        HStack {
-            Label("\(topic.recordings.count) recordings", systemImage: "waveform")
-            Spacer()
-            Label("\(topic.transcribedRecordingsCount) transcribed", systemImage: "doc.text")
+        HStack(spacing: 12) {
+            Label("\(topic.recordings.count)", systemImage: "waveform")
+            Label("\(topic.notes.count)", systemImage: "doc.text")
         }
         .font(.subheadline)
         .foregroundStyle(.secondary)
