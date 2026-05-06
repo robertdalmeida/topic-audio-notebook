@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var selectedStorageType: StorageType = .file
     @State private var isSwitchingStorage = false
     @State private var showingStorageConfirmation = false
+    @State private var selectedSummarizationProvider: SummarizationProvider = .onDevice
     
     var body: some View {
         NavigationStack {
@@ -71,71 +72,116 @@ struct SettingsView: View {
                                 .foregroundStyle(.purple)
                             
                             VStack(alignment: .leading) {
-                                Text("OpenAI API Key")
+                                Text("Summarization Provider")
                                     .font(.headline)
-                                Text(hasAPIKey ? "Configured" : "Not configured")
+                                Text(selectedSummarizationProvider.rawValue)
                                     .font(.caption)
-                                    .foregroundStyle(hasAPIKey ? .green : .secondary)
+                                    .foregroundStyle(.green)
                             }
                         }
                         
-                        Text("Required for AI-powered summary consolidation. Without it, a basic summary will be generated.")
+                        Text(selectedSummarizationProvider.description)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
                     
-                    HStack {
-                        if showingAPIKey {
-                            TextField("sk-...", text: $apiKey)
-                                .textContentType(.password)
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.never)
-                        } else {
-                            SecureField("sk-...", text: $apiKey)
+                    Picker("Provider", selection: $selectedSummarizationProvider) {
+                        ForEach(SummarizationProvider.allCases, id: \.self) { provider in
+                            HStack {
+                                Image(systemName: provider.icon)
+                                Text(provider.rawValue)
+                            }
+                            .tag(provider)
                         }
-                        
-                        Button {
-                            showingAPIKey.toggle()
-                        } label: {
-                            Image(systemName: showingAPIKey ? "eye.slash" : "eye")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
                     }
-                    
-                    Button("Save API Key") {
-                        saveAPIKey()
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedSummarizationProvider) { _, newValue in
+                        SummarizationServiceFactory.shared.setProvider(newValue)
                     }
-                    .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
                 } header: {
-                    Text("AI Configuration")
+                    Text("Summarization")
                 } footer: {
-                    Text("Your API key is stored securely on this device only.")
+                    Text("On-Device uses Apple's NaturalLanguage framework and works offline. OpenAI provides higher quality summaries but requires an API key.")
                 }
                 
-                Section {
-                    Link(destination: URL(string: "https://platform.openai.com/api-keys")!) {
-                        HStack {
-                            Label("Get API Key", systemImage: "key")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
+                if selectedSummarizationProvider == .openAI {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "key")
+                                    .font(.title2)
+                                    .foregroundStyle(.orange)
+                                
+                                VStack(alignment: .leading) {
+                                    Text("OpenAI API Key")
+                                        .font(.headline)
+                                    Text(hasAPIKey ? "Configured" : "Not configured")
+                                        .font(.caption)
+                                        .foregroundStyle(hasAPIKey ? .green : .secondary)
+                                }
+                            }
+                            
+                            Text("Required for OpenAI summarization.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                    }
-                    
-                    Link(destination: URL(string: "https://platform.openai.com/docs/guides/speech-to-text")!) {
+                        .padding(.vertical, 4)
+                        
                         HStack {
-                            Label("OpenAI Documentation", systemImage: "book")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            if showingAPIKey {
+                                TextField("sk-...", text: $apiKey)
+                                    .textContentType(.password)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+                            } else {
+                                SecureField("sk-...", text: $apiKey)
+                            }
+                            
+                            Button {
+                                showingAPIKey.toggle()
+                            } label: {
+                                Image(systemName: showingAPIKey ? "eye.slash" : "eye")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
                         }
+                        
+                        Button("Save API Key") {
+                            saveAPIKey()
+                        }
+                        .disabled(apiKey.trimmingCharacters(in: .whitespaces).isEmpty)
+                    } header: {
+                        Text("OpenAI Configuration")
+                    } footer: {
+                        Text("Your API key is stored securely on this device only.")
                     }
-                } header: {
-                    Text("Resources")
+                }
+                
+                if selectedSummarizationProvider == .openAI {
+                    Section {
+                        Link(destination: URL(string: "https://platform.openai.com/api-keys")!) {
+                            HStack {
+                                Label("Get API Key", systemImage: "key")
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        
+                        Link(destination: URL(string: "https://platform.openai.com/docs/guides/speech-to-text")!) {
+                            HStack {
+                                Label("OpenAI Documentation", systemImage: "book")
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } header: {
+                        Text("Resources")
+                    }
                 }
                 
                 Section {
@@ -168,6 +214,7 @@ struct SettingsView: View {
             .onAppear {
                 checkAPIKey()
                 selectedStorageType = topicStore.currentStorageType
+                selectedSummarizationProvider = SummarizationServiceFactory.shared.currentProvider
             }
             .alert("Switch Storage?", isPresented: $showingStorageConfirmation) {
                 Button("Cancel", role: .cancel) {
@@ -183,17 +230,13 @@ struct SettingsView: View {
     }
     
     private func saveAPIKey() {
-        Task {
-            await AIService.shared.setAPIKey(apiKey)
-            hasAPIKey = true
-            apiKey = ""
-        }
+        SummarizationServiceFactory.shared.setOpenAIKey(apiKey)
+        hasAPIKey = true
+        apiKey = ""
     }
     
     private func checkAPIKey() {
-        Task {
-            hasAPIKey = await AIService.shared.hasAPIKey()
-        }
+        hasAPIKey = SummarizationServiceFactory.shared.hasOpenAIKey()
     }
     
     private func switchStorage() {

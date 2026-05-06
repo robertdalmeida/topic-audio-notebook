@@ -111,14 +111,15 @@ class TopicStore: ObservableObject {
         saveTopics()
         
         do {
-            let result = try await AIService.shared.summarizeRecording(transcript)
+            let service = SummarizationServiceFactory.shared.currentService
+            let result = try await service.summarizeRecording(transcript)
             topics[topicIndex].recordings[recordingIndex].summary = result.summary
             topics[topicIndex].recordings[recordingIndex].summaryPoints = result.points
             topics[topicIndex].recordings[recordingIndex].summaryStatus = .completed
             topics[topicIndex].updatedAt = Date()
             saveTopics()
         } catch {
-            if case AIServiceError.noAPIKey = error {
+            if case SummarizationError.noAPIKey = error {
                 topics[topicIndex].recordings[recordingIndex].summaryStatus = .notAvailable
             } else {
                 topics[topicIndex].recordings[recordingIndex].summaryStatus = .failed
@@ -142,7 +143,8 @@ class TopicStore: ObservableObject {
         isLoading = true
         
         do {
-            let result = try await AIService.shared.consolidateTranscriptsWithPoints(transcripts)
+            let service = SummarizationServiceFactory.shared.currentService
+            let result = try await service.consolidateTranscripts(transcripts)
             topics[topicIndex].consolidatedSummary = result.summary
             topics[topicIndex].consolidatedPoints = result.points
             topics[topicIndex].updatedAt = Date()

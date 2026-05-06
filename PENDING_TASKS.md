@@ -24,9 +24,9 @@
 ## Phase 2: AI & Intelligence (Medium Priority)
 
 ### Enhanced AI Features
-- [ ] Support multiple AI providers (Claude, Gemini, local LLMs)
+- [x] Support multiple AI providers (On-Device via NaturalLanguage, OpenAI) - Switchable via Settings
 - [ ] Add custom summarization prompts
-- [ ] Implement key point extraction
+- [x] Implement key point extraction - Both providers extract key points
 - [ ] Add action item detection
 - [ ] Generate topic tags automatically
 - [ ] Support incremental summary updates

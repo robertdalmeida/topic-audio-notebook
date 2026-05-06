@@ -5,6 +5,7 @@ struct TopicDetailView: View {
     @State private var showingRecorder = false
     @State private var showingSummary = false
     @State private var isConsolidating = false
+    @State private var isGeneratingTopicSummary = false
     
     let topic: Topic
     
@@ -49,31 +50,20 @@ struct TopicDetailView: View {
                 .listRowBackground(Color.clear)
             }
             
-            if currentTopic.consolidatedSummary != nil {
-                Section {
-                    Button {
-                        showingSummary = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "doc.richtext")
-                                .font(.title2)
-                                .foregroundStyle(.green)
-                            
-                            VStack(alignment: .leading) {
-                                Text("Consolidated Summary")
-                                    .font(.headline)
-                                Text("Tap to view")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.secondary)
+            Section {
+                topicSummarySection
+            } header: {
+                HStack {
+                    Text("Topic Summary")
+                    Spacer()
+                    if currentTopic.consolidatedSummary != nil {
+                        Button {
+                            showingSummary = true
+                        } label: {
+                            Text("View Full")
+                                .font(.caption)
                         }
                     }
-                    .buttonStyle(.plain)
                 }
             }
             
@@ -152,6 +142,96 @@ struct TopicDetailView: View {
             if topicStore.topics.first(where: { $0.id == topic.id })?.consolidatedSummary != nil {
                 showingSummary = true
             }
+        }
+    }
+    
+    private func generateTopicSummary() {
+        isGeneratingTopicSummary = true
+        Task {
+            await topicStore.consolidateSummary(for: topic.id)
+            isGeneratingTopicSummary = false
+        }
+    }
+    
+    // MARK: - Topic Summary Section
+    
+    @ViewBuilder
+    private var topicSummarySection: some View {
+        if let summary = currentTopic.consolidatedSummary, !summary.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                if let points = currentTopic.consolidatedPoints, !points.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Key Points")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        
+                        ForEach(points.prefix(5), id: \.self) { point in
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "circle.fill")
+                                    .font(.system(size: 5))
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 6)
+                                
+                                Text(point)
+                                    .font(.subheadline)
+                            }
+                        }
+                        
+                        if points.count > 5 {
+                            Text("+ \(points.count - 5) more points")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                
+                Text(summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(4)
+            }
+            .padding(.vertical, 4)
+        } else if currentTopic.transcribedRecordingsCount > 0 {
+            VStack(spacing: 12) {
+                if isGeneratingTopicSummary || isConsolidating {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Generating summary...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Button {
+                        generateTopicSummary()
+                    } label: {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text("Generate Topic Summary")
+                        }
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle(radius: 8))
+                }
+            }
+            .padding(.vertical, 8)
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "doc.text")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("No transcripts available")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("Record and transcribe to generate a summary")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
         }
     }
 }
