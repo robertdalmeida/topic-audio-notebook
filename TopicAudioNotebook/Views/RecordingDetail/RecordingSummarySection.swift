@@ -54,7 +54,13 @@ private struct SummaryHeader: View {
             Spacer()
             
             if summaryStatus == .completed {
-                StatusBadge(status: "Ready", icon: "checkmark.circle.fill", color: .green)
+                Menu {
+                    Button(action: onGenerate) {
+                        Label("Regenerate Summary", systemImage: "arrow.clockwise")
+                    }
+                } label: {
+                    StatusBadge(status: "Ready", icon: "checkmark.circle.fill", color: .green)
+                }
             } else if isGenerating {
                 ProgressView()
                     .scaleEffect(0.8)

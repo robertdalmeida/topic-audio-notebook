@@ -13,8 +13,14 @@ enum SummaryDisplayMode: String, CaseIterable {
 struct SummaryView: View {
     @Environment(\.dismiss) private var dismiss
     let topic: Topic
+    let onRegenerate: (() -> Void)?
     
     @State private var displayMode: SummaryDisplayMode = .points
+    
+    init(topic: Topic, onRegenerate: (() -> Void)? = nil) {
+        self.topic = topic
+        self.onRegenerate = onRegenerate
+    }
     
     var body: some View {
         NavigationStack {
@@ -58,8 +64,23 @@ struct SummaryView: View {
                 
                 if topic.consolidatedSummary != nil {
                     ToolbarItem(placement: .primaryAction) {
-                        ShareLink(item: shareContent) {
-                            Image(systemName: "square.and.arrow.up")
+                        Menu {
+                            ShareLink(item: shareContent) {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                            }
+                            
+                            if let onRegenerate {
+                                Divider()
+                                
+                                Button(action: {
+                                    onRegenerate()
+                                    dismiss()
+                                }) {
+                                    Label("Regenerate Summary", systemImage: "arrow.clockwise")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
                     }
                 }
