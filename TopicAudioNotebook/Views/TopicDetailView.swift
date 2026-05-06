@@ -24,6 +24,9 @@ struct TopicDetailView: View {
                 viewModel.saveNote(content: content)
             }
         }
+        .fullScreenCover(isPresented: $viewModel.showingRecordingSession) {
+            RecordingSessionView(topicId: viewModel.topic.id, topicName: viewModel.topic.name)
+        }
     }
     
     // MARK: - Sections
@@ -31,26 +34,16 @@ struct TopicDetailView: View {
     private var actionButtonsSection: some View {
         Section {
             HStack(spacing: 16) {
-                Button(action: viewModel.toggleRecording) {
+                Button(action: viewModel.presentRecordingSession) {
                     HStack(spacing: 8) {
-                        Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
+                        Image(systemName: "mic.fill")
                             .font(.title3)
-                        if viewModel.isRecording {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Recording")
-                                    .font(.subheadline.weight(.semibold))
-                                Text(viewModel.recordingTime)
-                                    .font(.caption)
-                                    .monospacedDigit()
-                            }
-                        } else {
-                            Text("Record")
-                                .font(.subheadline.weight(.semibold))
-                        }
+                        Text("Record")
+                            .font(.subheadline.weight(.semibold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(viewModel.isRecording ? Color.red : Color.blue)
+                    .background(Color.blue)
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }

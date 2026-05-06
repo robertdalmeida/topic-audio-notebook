@@ -9,6 +9,7 @@ final class TopicDetailViewModel: ObservableObject {
     @Published private(set) var isGeneratingTopicSummary = false
     @Published var showingSummary = false
     @Published var showingNoteEditor = false
+    @Published var showingRecordingSession = false
     @Published var editingNote: Note?
     @Published private(set) var recordingTime: String = "00:00"
     
@@ -138,6 +139,12 @@ final class TopicDetailViewModel: ObservableObject {
     
     func presentSummary() {
         showingSummary = true
+    }
+    
+    // MARK: - Recording Session
+    
+    func presentRecordingSession() {
+        showingRecordingSession = true
     }
     
     // MARK: - Note Actions

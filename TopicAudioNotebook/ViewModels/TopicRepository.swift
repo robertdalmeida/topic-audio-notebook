@@ -18,6 +18,7 @@ protocol TopicRepositoryProtocol: AnyObject {
     func updateNote(_ note: Note, in topicId: UUID)
     func deleteNote(_ note: Note, from topicId: UUID)
     
+    func updateRecordingTranscript(recordingId: UUID, in topicId: UUID, transcript: String)
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async
     func retryTranscription(for recording: Recording, in topicId: UUID)
     
@@ -161,6 +162,22 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     }
     
     // MARK: - Transcription
+    
+    func updateRecordingTranscript(recordingId: UUID, in topicId: UUID, transcript: String) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }) else {
+            return
+        }
+        
+        topics[topicIndex].recordings[recordingIndex].transcript = transcript
+        topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .completed
+        topics[topicIndex].updatedAt = Date()
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
     
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async {
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),

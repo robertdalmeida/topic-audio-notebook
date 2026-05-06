@@ -30,6 +30,13 @@ struct RecordingDetailView: View {
         }
         .navigationTitle(viewModel.recording.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                ShareLink(item: viewModel.recording.fileURL) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)
     }

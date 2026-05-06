@@ -21,6 +21,8 @@
 		A100002D229F002D /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002D229F0000 /* Note.swift */; };
 		A100002E229F002E /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E229F0000 /* NoteEditorView.swift */; };
 		A100002F229F002F /* NoteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002F229F0000 /* NoteRowView.swift */; };
+		A1000031229F0031 /* RecordingSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000031229F0000 /* RecordingSessionView.swift */; };
+		A1000032229F0032 /* LiveTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032229F0000 /* LiveTranscriber.swift */; };
 		A1000006229F0006 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000006229F0000 /* AudioRecorder.swift */; };
 		A1000007229F0007 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000007229F0000 /* TranscriptionService.swift */; };
 		A1000008229F0008 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008229F0000 /* AIService.swift */; };
@@ -70,6 +72,8 @@
 		A100002D229F0000 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
 		A100002E229F0000 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
 		A100002F229F0000 /* NoteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteRowView.swift; sourceTree = "<group>"; };
+		A1000031229F0000 /* RecordingSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSessionView.swift; sourceTree = "<group>"; };
+		A1000032229F0000 /* LiveTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranscriber.swift; sourceTree = "<group>"; };
 		A1000006229F0000 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		A1000007229F0000 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		A1000008229F0000 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
@@ -168,6 +172,7 @@
 				A100000D229F0000 /* SummaryView.swift */,
 				A100000E229F0000 /* SettingsView.swift */,
 				A100002E229F0000 /* NoteEditorView.swift */,
+				A1000031229F0000 /* RecordingSessionView.swift */,
 				A10000E2229F0000 /* Components */,
 				A10000E3229F0000 /* TopicDetail */,
 				A10000E4229F0000 /* RecordingDetail */,
@@ -213,6 +218,7 @@
 				A1000006229F0000 /* AudioRecorder.swift */,
 				A1000011229F0000 /* AudioPlayer.swift */,
 				A1000007229F0000 /* TranscriptionService.swift */,
+				A1000032229F0000 /* LiveTranscriber.swift */,
 				A1000008229F0000 /* AIService.swift */,
 				A10000F2229F0000 /* Storage */,
 				A10000F3229F0000 /* Summarization */,
@@ -339,6 +345,8 @@
 				A100002D229F002D /* Note.swift in Sources */,
 				A100002E229F002E /* NoteEditorView.swift in Sources */,
 				A100002F229F002F /* NoteRowView.swift in Sources */,
+				A1000031229F0031 /* RecordingSessionView.swift in Sources */,
+				A1000032229F0032 /* LiveTranscriber.swift in Sources */,
 				A1000006229F0006 /* AudioRecorder.swift in Sources */,
 				A1000011229F0011 /* AudioPlayer.swift in Sources */,
 				A1000007229F0007 /* TranscriptionService.swift in Sources */,

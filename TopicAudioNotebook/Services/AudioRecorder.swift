@@ -2,9 +2,15 @@ import Foundation
 import AVFoundation
 import Combine
 
+enum RecordingState {
+    case idle
+    case recording
+    case paused
+}
+
 @MainActor
 class AudioRecorder: NSObject, ObservableObject {
-    @Published var isRecording = false
+    @Published var state: RecordingState = .idle
     @Published var recordingTime: TimeInterval = 0
     @Published var audioLevel: Float = 0
     @Published var errorMessage: String?
@@ -13,6 +19,12 @@ class AudioRecorder: NSObject, ObservableObject {
     private var timer: Timer?
     private var levelTimer: Timer?
     private var currentFileURL: URL?
+    private var pausedTime: TimeInterval = 0
+    
+    var isRecording: Bool { state == .recording }
+    var isPaused: Bool { state == .paused }
+    var isIdle: Bool { state == .idle }
+    var hasActiveSession: Bool { state != .idle }
     
     var formattedTime: String {
         let minutes = Int(recordingTime) / 60
@@ -56,8 +68,9 @@ class AudioRecorder: NSObject, ObservableObject {
             audioRecorder?.delegate = self
             audioRecorder?.record()
             
-            isRecording = true
+            state = .recording
             recordingTime = 0
+            pausedTime = 0
             startTimers()
             
             return fileURL
@@ -67,14 +80,30 @@ class AudioRecorder: NSObject, ObservableObject {
         }
     }
     
+    func pauseRecording() {
+        guard state == .recording, let recorder = audioRecorder else { return }
+        recorder.pause()
+        pausedTime = recordingTime
+        stopTimers()
+        state = .paused
+        audioLevel = 0
+    }
+    
+    func resumeRecording() {
+        guard state == .paused, let recorder = audioRecorder else { return }
+        recorder.record()
+        state = .recording
+        startTimers()
+    }
+    
     func stopRecording() -> (URL, TimeInterval)? {
-        guard let recorder = audioRecorder, isRecording else { return nil }
+        guard let recorder = audioRecorder, hasActiveSession else { return nil }
         
         let duration = recorder.currentTime
         recorder.stop()
         stopTimers()
         
-        isRecording = false
+        state = .idle
         audioLevel = 0
         
         guard let url = currentFileURL else { return nil }
@@ -89,8 +118,9 @@ class AudioRecorder: NSObject, ObservableObject {
             try? FileManager.default.removeItem(at: url)
         }
         
-        isRecording = false
+        state = .idle
         recordingTime = 0
+        pausedTime = 0
         audioLevel = 0
         currentFileURL = nil
     }
