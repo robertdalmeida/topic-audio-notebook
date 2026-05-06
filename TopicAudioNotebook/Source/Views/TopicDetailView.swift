@@ -18,8 +18,11 @@ struct TopicDetailView: View {
         .navigationTitle(viewModel.topic.name)
         .toolbar { topToolbar }
         .sheet(isPresented: $viewModel.showingSummary) {
-            SummaryView(topicId: viewModel.topic.id, onRegenerate: viewModel.generateTopicSummaryAsync)
-                .environmentObject(repository)
+            SummaryView(
+                topicId: viewModel.topic.id,
+                repository: repository,
+                onRegenerate: viewModel.generateTopicSummaryAsync
+            )
         }
         .sheet(isPresented: $viewModel.showingNoteEditor) {
             NoteEditorView(note: viewModel.editingNote) { content in
