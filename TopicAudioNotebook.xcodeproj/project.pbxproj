@@ -18,6 +18,9 @@
 		A100002A229F002A /* RecordingRowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229F0000 /* RecordingRowViewModel.swift */; };
 		A100002B229F002B /* AddTopicViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002B229F0000 /* AddTopicViewModel.swift */; };
 		A100002C229F002C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C229F0000 /* SettingsViewModel.swift */; };
+		A100002D229F002D /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002D229F0000 /* Note.swift */; };
+		A100002E229F002E /* NoteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E229F0000 /* NoteEditorView.swift */; };
+		A100002F229F002F /* NoteRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002F229F0000 /* NoteRowView.swift */; };
 		A1000006229F0006 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000006229F0000 /* AudioRecorder.swift */; };
 		A1000007229F0007 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000007229F0000 /* TranscriptionService.swift */; };
 		A1000008229F0008 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008229F0000 /* AIService.swift */; };
@@ -64,6 +67,9 @@
 		A100002A229F0000 /* RecordingRowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingRowViewModel.swift; sourceTree = "<group>"; };
 		A100002B229F0000 /* AddTopicViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTopicViewModel.swift; sourceTree = "<group>"; };
 		A100002C229F0000 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		A100002D229F0000 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		A100002E229F0000 /* NoteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEditorView.swift; sourceTree = "<group>"; };
+		A100002F229F0000 /* NoteRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteRowView.swift; sourceTree = "<group>"; };
 		A1000006229F0000 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		A1000007229F0000 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		A1000008229F0000 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
@@ -145,6 +151,7 @@
 			children = (
 				A1000003229F0000 /* Topic.swift */,
 				A1000004229F0000 /* Recording.swift */,
+				A100002D229F0000 /* Note.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -160,6 +167,7 @@
 				A100000C229F0000 /* TranscriptView.swift */,
 				A100000D229F0000 /* SummaryView.swift */,
 				A100000E229F0000 /* SettingsView.swift */,
+				A100002E229F0000 /* NoteEditorView.swift */,
 				A10000E2229F0000 /* Components */,
 				A10000E3229F0000 /* TopicDetail */,
 				A10000E4229F0000 /* RecordingDetail */,
@@ -184,6 +192,7 @@
 				A1000020229F0001 /* TopicStatsSection.swift */,
 				A1000021229F0000 /* TopicSummarySection.swift */,
 				A1000022229F0000 /* RecordingRowView.swift */,
+				A100002F229F0000 /* NoteRowView.swift */,
 			);
 			path = TopicDetail;
 			sourceTree = "<group>";
@@ -327,6 +336,9 @@
 				A100002A229F002A /* RecordingRowViewModel.swift in Sources */,
 				A100002B229F002B /* AddTopicViewModel.swift in Sources */,
 				A100002C229F002C /* SettingsViewModel.swift in Sources */,
+				A100002D229F002D /* Note.swift in Sources */,
+				A100002E229F002E /* NoteEditorView.swift in Sources */,
+				A100002F229F002F /* NoteRowView.swift in Sources */,
 				A1000006229F0006 /* AudioRecorder.swift in Sources */,
 				A1000011229F0011 /* AudioPlayer.swift in Sources */,
 				A1000007229F0007 /* TranscriptionService.swift in Sources */,

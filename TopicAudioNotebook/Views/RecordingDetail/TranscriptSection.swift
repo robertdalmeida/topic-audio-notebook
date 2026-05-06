@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct TranscriptSection: View {
     let transcript: String?
@@ -6,7 +11,7 @@ struct TranscriptSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TranscriptHeader(status: status)
+            TranscriptHeader(status: status, transcript: transcript)
             
             if let transcript = transcript, !transcript.isEmpty {
                 TranscriptContent(transcript: transcript)
@@ -22,6 +27,7 @@ struct TranscriptSection: View {
 
 private struct TranscriptHeader: View {
     let status: TranscriptionStatus
+    let transcript: String?
     
     var body: some View {
         HStack {
@@ -29,6 +35,15 @@ private struct TranscriptHeader: View {
                 .font(.headline)
             
             Spacer()
+            
+            if let transcript = transcript, !transcript.isEmpty {
+                Button {
+                    copyToClipboard(transcript)
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.subheadline)
+                }
+            }
             
             StatusBadge(
                 status: status.rawValue,
@@ -45,6 +60,15 @@ private struct TranscriptHeader: View {
         case .completed: return .green
         case .failed: return .red
         }
+    }
+    
+    private func copyToClipboard(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
     }
 }
 

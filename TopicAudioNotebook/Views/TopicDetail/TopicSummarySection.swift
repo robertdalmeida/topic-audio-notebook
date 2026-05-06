@@ -3,7 +3,7 @@ import SwiftUI
 struct TopicSummarySection: View {
     let summary: String?
     let points: [String]?
-    let transcribedCount: Int
+    let hasContent: Bool
     let isGenerating: Bool
     let onGenerate: () -> Void
     
@@ -11,10 +11,10 @@ struct TopicSummarySection: View {
         Group {
             if let summary = summary, !summary.isEmpty {
                 SummaryContentView(summary: summary, points: points)
-            } else if transcribedCount > 0 {
+            } else if hasContent {
                 GenerateSummaryView(isGenerating: isGenerating, onGenerate: onGenerate)
             } else {
-                NoTranscriptsView()
+                NoContentView()
             }
         }
     }
@@ -81,18 +81,18 @@ private struct GenerateSummaryView: View {
     }
 }
 
-// MARK: - No Transcripts View
+// MARK: - No Content View
 
-private struct NoTranscriptsView: View {
+private struct NoContentView: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: "doc.text")
                 .font(.title2)
                 .foregroundStyle(.secondary)
-            Text("No transcripts available")
+            Text("No content available")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Text("Record and transcribe to generate a summary")
+            Text("Add notes or recordings to generate a summary")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -107,7 +107,7 @@ private struct NoTranscriptsView: View {
             TopicSummarySection(
                 summary: "This is a sample summary of the topic covering multiple recordings.",
                 points: ["First point", "Second point", "Third point"],
-                transcribedCount: 3,
+                hasContent: true,
                 isGenerating: false,
                 onGenerate: { }
             )
@@ -121,7 +121,7 @@ private struct NoTranscriptsView: View {
             TopicSummarySection(
                 summary: nil,
                 points: nil,
-                transcribedCount: 3,
+                hasContent: true,
                 isGenerating: false,
                 onGenerate: { }
             )
@@ -129,13 +129,13 @@ private struct NoTranscriptsView: View {
     }
 }
 
-#Preview("No Transcripts") {
+#Preview("No Content") {
     List {
         Section {
             TopicSummarySection(
                 summary: nil,
                 points: nil,
-                transcribedCount: 0,
+                hasContent: false,
                 isGenerating: false,
                 onGenerate: { }
             )

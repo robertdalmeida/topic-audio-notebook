@@ -14,6 +14,10 @@ protocol TopicRepositoryProtocol: AnyObject {
     func addRecording(to topicId: UUID, title: String, fileURL: URL, duration: TimeInterval)
     func deleteRecording(_ recording: Recording, from topicId: UUID)
     
+    func addNote(to topicId: UUID, content: String)
+    func updateNote(_ note: Note, in topicId: UUID)
+    func deleteNote(_ note: Note, from topicId: UUID)
+    
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async
     func retryTranscription(for recording: Recording, in topicId: UUID)
     
@@ -97,7 +101,59 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         try? fileManager.removeItem(at: recording.fileURL)
         saveTopics()
         
-        if topics[topicIndex].transcribedRecordingsCount > 0 {
+        if topics[topicIndex].hasContentForSummary {
+            Task {
+                await consolidateSummary(for: topicId)
+            }
+        }
+    }
+    
+    // MARK: - Note Management
+    
+    func addNote(to topicId: UUID, content: String) {
+        guard let index = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        let note = Note(content: content)
+        topics[index].notes.append(note)
+        topics[index].updatedAt = Date()
+        topics[index].consolidatedSummary = nil
+        topics[index].consolidatedPoints = nil
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
+    
+    func updateNote(_ note: Note, in topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let noteIndex = topics[topicIndex].notes.firstIndex(where: { $0.id == note.id }) else {
+            return
+        }
+        
+        var updatedNote = note
+        updatedNote.updatedAt = Date()
+        topics[topicIndex].notes[noteIndex] = updatedNote
+        topics[topicIndex].updatedAt = Date()
+        topics[topicIndex].consolidatedSummary = nil
+        topics[topicIndex].consolidatedPoints = nil
+        saveTopics()
+        
+        Task {
+            await consolidateSummary(for: topicId)
+        }
+    }
+    
+    func deleteNote(_ note: Note, from topicId: UUID) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        topics[topicIndex].notes.removeAll { $0.id == note.id }
+        topics[topicIndex].updatedAt = Date()
+        topics[topicIndex].consolidatedSummary = nil
+        topics[topicIndex].consolidatedPoints = nil
+        saveTopics()
+        
+        if topics[topicIndex].hasContentForSummary {
             Task {
                 await consolidateSummary(for: topicId)
             }
@@ -174,9 +230,9 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     func consolidateSummary(for topicId: UUID) async {
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
         
-        let transcripts = topics[topicIndex].allTranscripts
-        guard !transcripts.isEmpty else {
-            errorMessage = "No transcripts available to consolidate"
+        let allContent = topics[topicIndex].allContent
+        guard !allContent.isEmpty else {
+            errorMessage = "No content available to consolidate"
             return
         }
         
@@ -184,7 +240,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         
         do {
             let service = SummarizationServiceFactory.shared.currentService
-            let result = try await service.consolidateTranscripts(transcripts)
+            let result = try await service.consolidateTranscripts(allContent)
             topics[topicIndex].consolidatedSummary = result.summary
             topics[topicIndex].consolidatedPoints = result.points
             topics[topicIndex].updatedAt = Date()

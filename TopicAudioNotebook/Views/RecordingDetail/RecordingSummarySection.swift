@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct RecordingSummarySection: View {
     let summary: String?
@@ -73,26 +78,48 @@ private struct SummaryKeyPointsCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Key Points")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+            HStack {
+                Text("Key Points")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Button {
+                    copyPointsToClipboard()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             ForEach(points, id: \.self) { point in
                 HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "circle.fill")
-                        .font(.system(size: 6))
+                    Text("•")
+                        .font(.body)
                         .foregroundStyle(.blue)
-                        .padding(.top, 6)
                     
                     Text(point)
                         .font(.body)
                 }
             }
         }
+        .textSelection(.enabled)
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func copyPointsToClipboard() {
+        let text = points.map { "• \($0)" }.joined(separator: "\n")
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
     }
 }
 
@@ -103,10 +130,22 @@ private struct SummaryTextCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Full Summary")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+            HStack {
+                Text("Full Summary")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Button {
+                    copySummaryToClipboard()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             Text(summary)
                 .font(.body)
@@ -115,6 +154,15 @@ private struct SummaryTextCard: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func copySummaryToClipboard() {
+        #if os(iOS)
+        UIPasteboard.general.string = summary
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(summary, forType: .string)
+        #endif
     }
 }
 

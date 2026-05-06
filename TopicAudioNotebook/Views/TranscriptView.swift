@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct TranscriptView: View {
     @Environment(\.dismiss) private var dismiss
@@ -41,15 +46,32 @@ struct TranscriptView: View {
                     }
                 }
                 
-                if recording.transcript != nil {
+                if let transcript = recording.transcript {
                     ToolbarItem(placement: .primaryAction) {
-                        ShareLink(item: recording.transcript ?? "") {
+                        Button {
+                            copyToClipboard(transcript)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+                    }
+                    
+                    ToolbarItem(placement: .secondaryAction) {
+                        ShareLink(item: transcript) {
                             Image(systemName: "square.and.arrow.up")
                         }
                     }
                 }
             }
         }
+    }
+    
+    private func copyToClipboard(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
     }
 }
 

@@ -8,6 +8,8 @@ final class TopicDetailViewModel: ObservableObject {
     @Published private(set) var isConsolidating = false
     @Published private(set) var isGeneratingTopicSummary = false
     @Published var showingSummary = false
+    @Published var showingNoteEditor = false
+    @Published var editingNote: Note?
     @Published private(set) var recordingTime: String = "00:00"
     
     private let topicId: UUID
@@ -24,7 +26,7 @@ final class TopicDetailViewModel: ObservableObject {
     }
     
     var canConsolidate: Bool {
-        topic.transcribedRecordingsCount > 0 && !isConsolidating
+        topic.hasContentForSummary && !isConsolidating
     }
     
     var hasSummary: Bool {
@@ -136,6 +138,36 @@ final class TopicDetailViewModel: ObservableObject {
     
     func presentSummary() {
         showingSummary = true
+    }
+    
+    // MARK: - Note Actions
+    
+    func presentAddNote() {
+        editingNote = nil
+        showingNoteEditor = true
+    }
+    
+    func presentEditNote(_ note: Note) {
+        editingNote = note
+        showingNoteEditor = true
+    }
+    
+    func saveNote(content: String) {
+        if let existingNote = editingNote {
+            var updatedNote = existingNote
+            updatedNote.content = content
+            repository.updateNote(updatedNote, in: topicId)
+        } else {
+            repository.addNote(to: topicId, content: content)
+        }
+        editingNote = nil
+    }
+    
+    func deleteNote(at offsets: IndexSet) {
+        for index in offsets {
+            let note = topic.notes[index]
+            repository.deleteNote(note, from: topicId)
+        }
     }
     
     // MARK: - Child ViewModels

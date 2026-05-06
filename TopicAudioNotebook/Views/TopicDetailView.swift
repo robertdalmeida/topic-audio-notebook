@@ -5,28 +5,76 @@ struct TopicDetailView: View {
     @StateObject var viewModel: TopicDetailViewModel
     
     var body: some View {
-        ZStack {
-            List {
-                descriptionSection
-                statsSection
-                summarySection
-                recordingsSection
-            }
-            .listStyle(.insetGrouped)
-            
-            VStack {
-                Spacer()
-                recordButton
-            }
+        List {
+            actionButtonsSection
+            descriptionSection
+            statsSection
+            summarySection
+            notesSection
+            recordingsSection
         }
+        .listStyle(.insetGrouped)
         .navigationTitle(viewModel.topic.name)
         .toolbar { topToolbar }
         .sheet(isPresented: $viewModel.showingSummary) {
             SummaryView(topic: viewModel.topic)
         }
+        .sheet(isPresented: $viewModel.showingNoteEditor) {
+            NoteEditorView(note: viewModel.editingNote) { content in
+                viewModel.saveNote(content: content)
+            }
+        }
     }
     
     // MARK: - Sections
+    
+    private var actionButtonsSection: some View {
+        Section {
+            HStack(spacing: 16) {
+                Button(action: viewModel.toggleRecording) {
+                    HStack(spacing: 8) {
+                        Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
+                            .font(.title3)
+                        if viewModel.isRecording {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Recording")
+                                    .font(.subheadline.weight(.semibold))
+                                Text(viewModel.recordingTime)
+                                    .font(.caption)
+                                    .monospacedDigit()
+                            }
+                        } else {
+                            Text("Record")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(viewModel.isRecording ? Color.red : Color.blue)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: viewModel.presentAddNote) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "note.text.badge.plus")
+                            .font(.title3)
+                        Text("Add Note")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.orange)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+            }
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            .listRowBackground(Color.clear)
+        }
+    }
     
     @ViewBuilder
     private var descriptionSection: some View {
@@ -54,7 +102,7 @@ struct TopicDetailView: View {
             TopicSummarySection(
                 summary: viewModel.topic.consolidatedSummary,
                 points: viewModel.topic.consolidatedPoints,
-                transcribedCount: viewModel.topic.transcribedRecordingsCount,
+                hasContent: viewModel.topic.hasContentForSummary,
                 isGenerating: viewModel.isGeneratingTopicSummary || viewModel.isConsolidating,
                 onGenerate: viewModel.generateTopicSummary
             )
@@ -72,13 +120,44 @@ struct TopicDetailView: View {
         }
     }
     
+    private var notesSection: some View {
+        Section {
+            if viewModel.topic.notes.isEmpty {
+                ContentUnavailableView {
+                    Label("No Notes", systemImage: "note.text")
+                } description: {
+                    Text("Tap Add Note to create one")
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                ForEach(viewModel.topic.notes) { note in
+                    Button {
+                        viewModel.presentEditNote(note)
+                    } label: {
+                        NoteRowView(note: note)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .onDelete(perform: viewModel.deleteNote)
+            }
+        } header: {
+            HStack {
+                Text("Notes")
+                Spacer()
+                Text("\(viewModel.topic.notes.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
     private var recordingsSection: some View {
         Section {
             if viewModel.topic.recordings.isEmpty {
                 ContentUnavailableView {
                     Label("No Recordings", systemImage: "waveform")
                 } description: {
-                    Text("Tap the microphone button to record")
+                    Text("Tap Record to create one")
                 }
                 .listRowBackground(Color.clear)
             } else {
@@ -92,57 +171,14 @@ struct TopicDetailView: View {
                 .onDelete(perform: viewModel.deleteRecording)
             }
         } header: {
-            Text("Recordings")
-        }
-    }
-    
-    // MARK: - Record Button
-    
-    private var recordButton: some View {
-        Button(action: viewModel.toggleRecording) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(viewModel.isRecording ? Color.red : Color.blue)
-                        .frame(width: 56, height: 56)
-                    
-                    if viewModel.isRecording {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(.white)
-                            .frame(width: 20, height: 20)
-                    } else {
-                        Image(systemName: "mic.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white)
-                    }
-                }
-                
-                if viewModel.isRecording {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Recording...")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        Text(viewModel.recordingTime)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
-                } else {
-                    Text("Record")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                }
+            HStack {
+                Text("Recordings")
+                Spacer()
+                Text("\(viewModel.topic.recordings.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(
-                Capsule()
-                    .fill(viewModel.isRecording ? Color.red.opacity(0.15) : Color.blue.opacity(0.15))
-            )
         }
-        .buttonStyle(.plain)
-        .padding(.bottom, 20)
-        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
     }
     
     // MARK: - Toolbar
