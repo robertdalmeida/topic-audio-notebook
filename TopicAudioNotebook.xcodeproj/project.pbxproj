@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A1000018229F0018 /* SummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018229F0000 /* SummarizationService.swift */; };
-		A1000019229F0019 /* OnDeviceSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019229F0000 /* OnDeviceSummarizationService.swift */; };
-		A100001A229F001A /* OpenAISummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229F0000 /* OpenAISummarizationService.swift */; };
-		A100001B229F001B /* SummarizationServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001B229F0000 /* SummarizationServiceFactory.swift */; };
 		A1000001229F0001 /* TopicAudioNotebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001229F0000 /* TopicAudioNotebookApp.swift */; };
 		A1000002229F0002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229F0000 /* ContentView.swift */; };
 		A1000003229F0003 /* Topic.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000003229F0000 /* Topic.swift */; };
@@ -33,6 +29,20 @@
 		A1000015229F0015 /* CoreDataStorageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000015229F0000 /* CoreDataStorageProvider.swift */; };
 		A1000016229F0016 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016229F0000 /* StorageManager.swift */; };
 		A1000017229F0017 /* TopicAudioNotebook.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A1000017229F0000 /* TopicAudioNotebook.xcdatamodeld */; };
+		A1000018229F0018 /* SummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018229F0000 /* SummarizationService.swift */; };
+		A1000019229F0019 /* OnDeviceSummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019229F0000 /* OnDeviceSummarizationService.swift */; };
+		A100001A229F001A /* OpenAISummarizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229F0000 /* OpenAISummarizationService.swift */; };
+		A100001B229F001B /* SummarizationServiceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001B229F0000 /* SummarizationServiceFactory.swift */; };
+		A100001C229F001C /* StatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229F0000 /* StatCard.swift */; };
+		A100001D229F001D /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001D229F0000 /* StatusBadge.swift */; };
+		A100001E229F001E /* TranscriptionStatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229F0000 /* TranscriptionStatusBadge.swift */; };
+		A100001F229F001F /* KeyPointsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001F229F0000 /* KeyPointsView.swift */; };
+		A1000020229F0020 /* TopicStatsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020229F0001 /* TopicStatsSection.swift */; };
+		A1000021229F0021 /* TopicSummarySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021229F0000 /* TopicSummarySection.swift */; };
+		A1000022229F0022 /* RecordingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022229F0000 /* RecordingRowView.swift */; };
+		A1000023229F0023 /* AudioPlayerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023229F0000 /* AudioPlayerSection.swift */; };
+		A1000024229F0024 /* TranscriptSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229F0000 /* TranscriptSection.swift */; };
+		A1000025229F0025 /* RecordingSummarySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025229F0000 /* RecordingSummarySection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +74,16 @@
 		A1000019229F0000 /* OnDeviceSummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceSummarizationService.swift; sourceTree = "<group>"; };
 		A100001A229F0000 /* OpenAISummarizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAISummarizationService.swift; sourceTree = "<group>"; };
 		A100001B229F0000 /* SummarizationServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummarizationServiceFactory.swift; sourceTree = "<group>"; };
+		A100001C229F0000 /* StatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCard.swift; sourceTree = "<group>"; };
+		A100001D229F0000 /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
+		A100001E229F0000 /* TranscriptionStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionStatusBadge.swift; sourceTree = "<group>"; };
+		A100001F229F0000 /* KeyPointsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPointsView.swift; sourceTree = "<group>"; };
+		A1000020229F0001 /* TopicStatsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicStatsSection.swift; sourceTree = "<group>"; };
+		A1000021229F0000 /* TopicSummarySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicSummarySection.swift; sourceTree = "<group>"; };
+		A1000022229F0000 /* RecordingRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingRowView.swift; sourceTree = "<group>"; };
+		A1000023229F0000 /* AudioPlayerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerSection.swift; sourceTree = "<group>"; };
+		A1000024229F0000 /* TranscriptSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptSection.swift; sourceTree = "<group>"; };
+		A1000025229F0000 /* RecordingSummarySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSummarySection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,8 +147,42 @@
 				A100000C229F0000 /* TranscriptView.swift */,
 				A100000D229F0000 /* SummaryView.swift */,
 				A100000E229F0000 /* SettingsView.swift */,
+				A10000E2229F0000 /* Components */,
+				A10000E3229F0000 /* TopicDetail */,
+				A10000E4229F0000 /* RecordingDetail */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A10000E2229F0000 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A100001C229F0000 /* StatCard.swift */,
+				A100001D229F0000 /* StatusBadge.swift */,
+				A100001E229F0000 /* TranscriptionStatusBadge.swift */,
+				A100001F229F0000 /* KeyPointsView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A10000E3229F0000 /* TopicDetail */ = {
+			isa = PBXGroup;
+			children = (
+				A1000020229F0001 /* TopicStatsSection.swift */,
+				A1000021229F0000 /* TopicSummarySection.swift */,
+				A1000022229F0000 /* RecordingRowView.swift */,
+			);
+			path = TopicDetail;
+			sourceTree = "<group>";
+		};
+		A10000E4229F0000 /* RecordingDetail */ = {
+			isa = PBXGroup;
+			children = (
+				A1000023229F0000 /* AudioPlayerSection.swift */,
+				A1000024229F0000 /* TranscriptSection.swift */,
+				A1000025229F0000 /* RecordingSummarySection.swift */,
+			);
+			path = RecordingDetail;
 			sourceTree = "<group>";
 		};
 		A10000F1229F0000 /* Services */ = {
@@ -261,6 +315,16 @@
 				A1000019229F0019 /* OnDeviceSummarizationService.swift in Sources */,
 				A100001A229F001A /* OpenAISummarizationService.swift in Sources */,
 				A100001B229F001B /* SummarizationServiceFactory.swift in Sources */,
+				A100001C229F001C /* StatCard.swift in Sources */,
+				A100001D229F001D /* StatusBadge.swift in Sources */,
+				A100001E229F001E /* TranscriptionStatusBadge.swift in Sources */,
+				A100001F229F001F /* KeyPointsView.swift in Sources */,
+				A1000020229F0020 /* TopicStatsSection.swift in Sources */,
+				A1000021229F0021 /* TopicSummarySection.swift in Sources */,
+				A1000022229F0022 /* RecordingRowView.swift in Sources */,
+				A1000023229F0023 /* AudioPlayerSection.swift in Sources */,
+				A1000024229F0024 /* TranscriptSection.swift in Sources */,
+				A1000025229F0025 /* RecordingSummarySection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,7 +457,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DW59WQ23G9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TopicAudioNotebook/Info.plist;
@@ -426,7 +490,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DW59WQ23G9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TopicAudioNotebook/Info.plist;
@@ -455,20 +519,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A10000A2229F0000 /* Build configuration list for PBXProject "TopicAudioNotebook" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A1000040229F0000 /* Debug */,
-				A1000041229F0000 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		A1000030229F0000 /* Build configuration list for PBXNativeTarget "TopicAudioNotebook" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1000050229F0000 /* Debug */,
 				A1000051229F0000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000A2229F0000 /* Build configuration list for PBXProject "TopicAudioNotebook" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000040229F0000 /* Debug */,
+				A1000041229F0000 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
