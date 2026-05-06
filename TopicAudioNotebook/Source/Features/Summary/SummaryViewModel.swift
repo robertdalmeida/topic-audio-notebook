@@ -92,9 +92,14 @@ final class SummaryViewModel {
     // MARK: - Actions
     
     func onAppear() async {
-        viewState = .loading
-        await loadModelIfNeeded()
-        viewState = .ready
+        if hasSummary {
+            viewState = .ready
+            await loadModelIfNeeded()
+        } else {
+            viewState = .loading
+            await loadModelIfNeeded()
+            viewState = .ready
+        }
     }
     
     func regenerateSummary() async {

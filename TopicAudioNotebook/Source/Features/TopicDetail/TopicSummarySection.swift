@@ -7,10 +7,20 @@ struct TopicSummarySection: View {
     let isGenerating: Bool
     let onGenerate: () -> Void
     
+    private var hasSummary: Bool {
+        if let summary = summary, !summary.isEmpty { return true }
+        if let points = points, !points.isEmpty { return true }
+        return false
+    }
+    
     var body: some View {
         Group {
-            if let summary = summary, !summary.isEmpty {
-                SummaryContentView(summary: summary, points: points)
+            if hasSummary {
+                SummaryContentView(
+                    summary: summary ?? "",
+                    points: points,
+                    isGenerating: isGenerating
+                )
             } else if hasContent {
                 GenerateSummaryView(isGenerating: isGenerating, onGenerate: onGenerate)
             } else {
@@ -25,9 +35,20 @@ struct TopicSummarySection: View {
 private struct SummaryContentView: View {
     let summary: String
     let points: [String]?
+    let isGenerating: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if isGenerating {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                    Text("Updating summary...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
             if let points = points, !points.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Key Points")
@@ -39,10 +60,12 @@ private struct SummaryContentView: View {
                 }
             }
             
-            Text(summary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(4)
+            if !summary.isEmpty {
+                Text(summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(4)
+            }
         }
         .padding(.vertical, 4)
     }
@@ -109,6 +132,20 @@ private struct NoContentView: View {
                 points: ["First point", "Second point", "Third point"],
                 hasContent: true,
                 isGenerating: false,
+                onGenerate: { }
+            )
+        }
+    }
+}
+
+#Preview("Updating Summary") {
+    List {
+        Section {
+            TopicSummarySection(
+                summary: "This is a sample summary of the topic covering multiple recordings.",
+                points: ["First point", "Second point", "Third point"],
+                hasContent: true,
+                isGenerating: true,
                 onGenerate: { }
             )
         }

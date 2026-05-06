@@ -97,16 +97,23 @@ private struct SummaryContentView: View {
     @ViewBuilder
     private var summaryBody: some View {
         switch viewModel.viewState {
-        case .loading:
-            LoadingStateView(message: "Loading...")
+        case .loading, .ready, .error:
+            if viewModel.hasSummary {
+                summaryContent
+            } else {
+                NoSummaryView()
+            }
         case .regenerating:
             LoadingStateView(message: "Regenerating summary...", subtitle: "This may take a moment")
-        case .ready, .error:
-            if viewModel.displayMode == .points {
-                KeyPointsSection(points: topic.consolidatedPoints)
-            } else {
-                LongFormSection(summary: topic.consolidatedSummary)
-            }
+        }
+    }
+    
+    @ViewBuilder
+    private var summaryContent: some View {
+        if viewModel.displayMode == .points {
+            KeyPointsSection(points: topic.consolidatedPoints)
+        } else {
+            LongFormSection(summary: topic.consolidatedSummary)
         }
     }
 }
@@ -190,6 +197,19 @@ private struct DisplayModePicker: View {
             }
         }
         .pickerStyle(.segmented)
+    }
+}
+
+// MARK: - No Summary View
+
+private struct NoSummaryView: View {
+    var body: some View {
+        ContentUnavailableView {
+            Label("No Summary Yet", systemImage: "doc.text.magnifyingglass")
+        } description: {
+            Text("Tap the regenerate button to generate a summary from your recordings")
+        }
+        .padding(.vertical, 20)
     }
 }
 
