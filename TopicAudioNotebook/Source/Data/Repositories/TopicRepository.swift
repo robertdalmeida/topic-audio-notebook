@@ -56,6 +56,34 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         saveTopics()
     }
     
+    func archiveTopic(_ topic: Topic) {
+        log.info("[TopicRepository] Archiving topic: \(topic.name)", category: .repository)
+        if let index = topics.firstIndex(where: { $0.id == topic.id }) {
+            topics[index].isArchived = true
+            topics[index].archivedAt = Date()
+            topics[index].updatedAt = Date()
+            saveTopics()
+        }
+    }
+    
+    func unarchiveTopic(_ topic: Topic) {
+        log.info("[TopicRepository] Unarchiving topic: \(topic.name)", category: .repository)
+        if let index = topics.firstIndex(where: { $0.id == topic.id }) {
+            topics[index].isArchived = false
+            topics[index].archivedAt = nil
+            topics[index].updatedAt = Date()
+            saveTopics()
+        }
+    }
+    
+    var activeTopics: [Topic] {
+        topics.filter { !$0.isArchived }
+    }
+    
+    var archivedTopics: [Topic] {
+        topics.filter { $0.isArchived }
+    }
+    
     // MARK: - Recording Management
     
     func addRecording(to topicId: UUID, title: String, fileURL: URL, duration: TimeInterval) {

@@ -4,6 +4,7 @@ import Combine
 @MainActor
 final class TopicsListViewModel: ObservableObject {
     @Published private(set) var topics: [Topic] = []
+    @Published private(set) var archivedTopicsCount: Int = 0
     @Published var showingAddTopic = false
     @Published var showingSettings = false
     
@@ -18,14 +19,24 @@ final class TopicsListViewModel: ObservableObject {
     private func setupBindings() {
         repository.$topics
             .receive(on: DispatchQueue.main)
+            .map { $0.filter { !$0.isArchived } }
             .assign(to: &$topics)
+        
+        repository.$topics
+            .receive(on: DispatchQueue.main)
+            .map { $0.filter { $0.isArchived }.count }
+            .assign(to: &$archivedTopicsCount)
     }
     
     // MARK: - Actions
     
-    func deleteTopic(at offsets: IndexSet) {
+    func archiveTopic(_ topic: Topic) {
+        repository.archiveTopic(topic)
+    }
+    
+    func archiveTopic(at offsets: IndexSet) {
         for index in offsets {
-            repository.deleteTopic(topics[index])
+            repository.archiveTopic(topics[index])
         }
     }
     

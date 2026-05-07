@@ -7,13 +7,14 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.topics.isEmpty {
+                if viewModel.topics.isEmpty && viewModel.archivedTopicsCount == 0 {
                     EmptyStateView(onAddTopic: viewModel.presentAddTopic)
                 } else {
                     TopicListView(
                         topics: viewModel.topics,
-                        onDelete: viewModel.deleteTopic,
-                        repository: repository
+                        onArchive: viewModel.archiveTopic,
+                        repository: repository,
+                        archivedCount: viewModel.archivedTopicsCount
                     )
                 }
             }
@@ -78,8 +79,11 @@ struct EmptyStateView: View {
 
 struct TopicListView: View {
     let topics: [Topic]
-    let onDelete: (IndexSet) -> Void
+    let onArchive: (Topic) -> Void
     let repository: TopicRepository
+    let archivedCount: Int
+    
+    @State private var topicToArchive: Topic?
     
     var body: some View {
         List {
@@ -89,10 +93,44 @@ struct TopicListView: View {
                 )) {
                     TopicRowView(topic: topic)
                 }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        topicToArchive = topic
+                    } label: {
+                        Label("Archive", systemImage: "archivebox")
+                    }
+                    .tint(.orange)
+                }
             }
-            .onDelete(perform: onDelete)
+            
+            if archivedCount > 0 {
+                Section {
+                    NavigationLink {
+                        ArchivedTopicsView(repository: repository)
+                    } label: {
+                        HStack {
+                            Label("Archived Topics", systemImage: "archivebox")
+                            Spacer()
+                            Text("\(archivedCount)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
         }
         .listStyle(.insetGrouped)
+        .fullScreenCover(item: $topicToArchive) { topic in
+            ArchiveTopicConfirmationView(
+                topicName: topic.name,
+                onConfirm: {
+                    onArchive(topic)
+                    topicToArchive = nil
+                },
+                onCancel: {
+                    topicToArchive = nil
+                }
+            )
+        }
     }
 }
 

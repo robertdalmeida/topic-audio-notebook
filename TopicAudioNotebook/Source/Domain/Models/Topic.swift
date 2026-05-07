@@ -11,11 +11,14 @@ struct Topic: Identifiable, Codable {
     var createdAt: Date
     var updatedAt: Date
     var color: TopicColor
+    var isArchived: Bool
+    var archivedAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id, name, description, recordings, notes
         case consolidatedSummary, consolidatedPoints
         case createdAt, updatedAt, color
+        case isArchived, archivedAt
     }
     
     init(
@@ -28,7 +31,9 @@ struct Topic: Identifiable, Codable {
         consolidatedPoints: [String]? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        color: TopicColor = .blue
+        color: TopicColor = .blue,
+        isArchived: Bool = false,
+        archivedAt: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -40,6 +45,8 @@ struct Topic: Identifiable, Codable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.color = color
+        self.isArchived = isArchived
+        self.archivedAt = archivedAt
     }
     
     init(from decoder: Decoder) throws {
@@ -54,6 +61,8 @@ struct Topic: Identifiable, Codable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         color = try container.decode(TopicColor.self, forKey: .color)
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
+        archivedAt = try container.decodeIfPresent(Date.self, forKey: .archivedAt)
     }
     
     // MARK: - Active Items (non-archived)

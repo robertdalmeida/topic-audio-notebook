@@ -47,13 +47,14 @@ struct RootView: View {
     private var stackLayout: some View {
         NavigationStack {
             ZStack {
-                if viewModel.topics.isEmpty {
+                if viewModel.topics.isEmpty && viewModel.archivedTopicsCount == 0 {
                     EmptyStateView(onAddTopic: viewModel.presentAddTopic)
                 } else {
                     TopicListView(
                         topics: viewModel.topics,
-                        onDelete: viewModel.deleteTopic,
-                        repository: repository
+                        onArchive: viewModel.archiveTopic,
+                        repository: repository,
+                        archivedCount: viewModel.archivedTopicsCount
                     )
                 }
             }
@@ -91,13 +92,37 @@ private struct SidebarView: View {
     @Binding var selectedTopicId: UUID?
     let repository: TopicRepository
     
+    @State private var topicToArchive: Topic?
+    
     var body: some View {
         List(selection: $selectedTopicId) {
             ForEach(viewModel.topics) { topic in
                 SidebarTopicRow(topic: topic)
                     .tag(topic.id)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button {
+                            topicToArchive = topic
+                        } label: {
+                            Label("Archive", systemImage: "archivebox")
+                        }
+                        .tint(.orange)
+                    }
             }
-            .onDelete(perform: viewModel.deleteTopic)
+            
+            if viewModel.archivedTopicsCount > 0 {
+                Section {
+                    NavigationLink {
+                        ArchivedTopicsView(repository: repository)
+                    } label: {
+                        HStack {
+                            Label("Archived Topics", systemImage: "archivebox")
+                            Spacer()
+                            Text("\(viewModel.archivedTopicsCount)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
         }
         .listStyle(.sidebar)
         .navigationTitle("Topics")
@@ -122,8 +147,20 @@ private struct SidebarView: View {
         .sheet(isPresented: $viewModel.showingSettings) {
             SettingsView(viewModel: SettingsViewModel(repository: repository))
         }
+        .fullScreenCover(item: $topicToArchive) { topic in
+            ArchiveTopicConfirmationView(
+                topicName: topic.name,
+                onConfirm: {
+                    viewModel.archiveTopic(topic)
+                    topicToArchive = nil
+                },
+                onCancel: {
+                    topicToArchive = nil
+                }
+            )
+        }
         .overlay {
-            if viewModel.topics.isEmpty {
+            if viewModel.topics.isEmpty && viewModel.archivedTopicsCount == 0 {
                 ContentUnavailableView {
                     Label("No Topics", systemImage: "folder.badge.plus")
                 } description: {

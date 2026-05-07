@@ -3,6 +3,8 @@ import SwiftUI
 struct TopicDetailView: View {
     @EnvironmentObject var repository: TopicRepository
     @StateObject var viewModel: TopicDetailViewModel
+    var isArchivedContext: Bool = false
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         List {
@@ -16,6 +18,13 @@ struct TopicDetailView: View {
         }
         .listStyle(.insetGrouped)
         .navigationTitle(viewModel.topic.name)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: viewModel.presentTopicSettings) {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
         .sheet(isPresented: $viewModel.showingNoteEditor) {
             NoteEditorView(note: viewModel.editingNote) { content in
                 viewModel.saveNote(content: content)
@@ -26,6 +35,17 @@ struct TopicDetailView: View {
         }
         .sheet(isPresented: $viewModel.showingArchivedItems) {
             ArchivedItemsView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $viewModel.showingTopicSettings) {
+            TopicSettingsView(
+                topic: viewModel.topic,
+                repository: repository,
+                isArchivedContext: isArchivedContext,
+                onDismiss: { viewModel.showingTopicSettings = false },
+                onTopicArchived: { dismiss() },
+                onTopicDeleted: { dismiss() },
+                onTopicRestored: { dismiss() }
+            )
         }
     }
     

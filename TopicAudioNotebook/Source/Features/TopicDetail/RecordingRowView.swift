@@ -27,14 +27,15 @@ private struct RecordingRowHeader: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(recording.title)
-                    .font(.headline)
-                
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+
                 HStack(spacing: 12) {
                     Label(recording.formattedDuration, systemImage: "clock")
                     Label(recording.formattedDate, systemImage: "calendar")
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
             }
             
             Spacer()
@@ -54,9 +55,9 @@ private struct TranscriptPreviewView: View {
 
     var body: some View {
         Text(transcript)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(2)
+            .font(.callout)
+            .foregroundStyle(.primary)
+            .lineLimit(0)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(8)
             .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 8))

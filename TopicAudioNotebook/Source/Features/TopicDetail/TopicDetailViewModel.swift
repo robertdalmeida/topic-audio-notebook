@@ -9,6 +9,7 @@ final class TopicDetailViewModel: ObservableObject {
     @Published var showingNoteEditor = false
     @Published var showingRecordingSession = false
     @Published var showingArchivedItems = false
+    @Published var showingTopicSettings = false
     @Published var editingNote: Note?
     @Published private(set) var recordingTime: String = "00:00"
     
@@ -191,6 +192,10 @@ final class TopicDetailViewModel: ObservableObject {
     
     func presentArchivedItems() {
         showingArchivedItems = true
+    }
+    
+    func presentTopicSettings() {
+        showingTopicSettings = true
     }
     
     // MARK: - Child ViewModels
