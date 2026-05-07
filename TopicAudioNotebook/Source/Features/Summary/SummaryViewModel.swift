@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @Observable
 @MainActor
@@ -16,6 +17,7 @@ final class SummaryViewModel {
     private(set) var viewState: ViewState = .loading
     private let stateManager = SummarizationStateManager.shared
     var displayMode: SummaryDisplayMode = .points
+    private(set) var topic: Topic?
     
     // MARK: - Dependencies
     
@@ -23,12 +25,7 @@ final class SummaryViewModel {
     private let repository: TopicRepository
     private let factory: SummarizationServiceFactory
     private let regenerateAction: (() async -> Void)?
-    
-    // MARK: - Computed Properties
-    
-    var topic: Topic? {
-        repository.topics.first { $0.id == topicId }
-    }
+    private var cancellables = Set<AnyCancellable>()
     
     var hasSummary: Bool {
         topic?.consolidatedSummary != nil || topic?.consolidatedPoints != nil
@@ -73,6 +70,21 @@ final class SummaryViewModel {
         self.repository = repository
         self.factory = factory
         self.regenerateAction = regenerateAction
+        self.topic = repository.topics.first { $0.id == topicId }
+        
+        setupBindings()
+    }
+    
+    private func setupBindings() {
+        repository.$topics
+            .map { [topicId] topics in
+                topics.first { $0.id == topicId }
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] topic in
+                self?.topic = topic
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Actions
