@@ -128,27 +128,11 @@ actor MLXSummarizationService: LoadableSummarizationService {
     #endif
     
     private func buildKeyPointsPrompt(combinedText: String, count: Int) -> String {
-        """
-        Extract key points from the following \(count) transcripts. Focus on the most important information, insights, and actionable items.
-        
-        Format your response as bullet points only:
-        • [Point 1]
-        • [Point 2]
-        • [Point 3]
-        (continue as needed)
-        
-        Transcripts:
-        \(combinedText.prefix(6000))
-        """
+        SummarizationPrompts.keyPointsUserPrompt(transcript: combinedText, maxLength: 6000)
     }
     
     private func buildFullSummaryPrompt(combinedText: String, count: Int) -> String {
-        """
-        Create a comprehensive, well-structured summary of the following \(count) transcripts. Capture important details, and conclusions. Write in clear paragraphs and to the point.
-        
-        Transcripts:
-        \(combinedText.prefix(6000))
-        """
+        SummarizationPrompts.summaryUserPrompt(transcript: combinedText, maxLength: 6000)
     }
     
     private func parseKeyPoints(_ response: String) -> [String] {

@@ -135,31 +135,11 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
     #endif
     
     private func buildKeyPointsPrompt(combinedText: String, count: Int) -> String {
-        """
-        <|begin_of_text|><|start_header_id|>system<|end_header_id|>
-        You are a helpful assistant that extracts key points from audio recording transcripts.<|eot_id|><|start_header_id|>user<|end_header_id|>
-        Extract 5-10 key points from the following \(count) transcripts. Focus on the most important information, insights, and actionable items.
-        
-        Format your response as bullet points only:
-        • [Point 1]
-        • [Point 2]
-        • [Point 3]
-        (continue as needed)
-        
-        Transcripts:
-        \(combinedText.prefix(4000))<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-        """
+        SummarizationPrompts.llamaKeyPointsPrompt(transcript: combinedText, maxLength: 4000)
     }
     
     private func buildFullSummaryPrompt(combinedText: String, count: Int) -> String {
-        """
-        <|begin_of_text|><|start_header_id|>system<|end_header_id|>
-        You are a helpful assistant that creates comprehensive summaries from audio recording transcripts.<|eot_id|><|start_header_id|>user<|end_header_id|>
-        Create a comprehensive, well-structured summary of the following \(count) transcripts. Capture the main themes, important details, and conclusions. Write in clear paragraphs.
-        
-        Transcripts:
-        \(combinedText.prefix(5000))<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-        """
+        SummarizationPrompts.llamaSummaryPrompt(transcript: combinedText, maxLength: 5000)
     }
     
     private func parseKeyPoints(_ response: String) -> [String] {

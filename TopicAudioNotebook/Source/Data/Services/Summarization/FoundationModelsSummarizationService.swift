@@ -35,18 +35,7 @@ actor FoundationModelsSummarizationService: SummarizationService {
         #if canImport(FoundationModels)
         let session = try getSession()
         
-        let prompt = """
-        Extract key points from the following \(transcripts.count) transcripts. Focus on the most important information, insights, and actionable items.
-        
-        Format your response as bullet points only:
-        • [Point 1]
-        • [Point 2]
-        • [Point 3]
-        (continue as needed)
-        
-        Transcripts:
-        \(combinedText)
-        """
+        let prompt = SummarizationPrompts.keyPointsUserPrompt(transcript: combinedText)
         
         let response = try await session.respond(to: prompt)
         return parseKeyPoints(response.content)
@@ -65,12 +54,7 @@ actor FoundationModelsSummarizationService: SummarizationService {
         #if canImport(FoundationModels)
         let session = try getSession()
         
-        let prompt = """
-        Create a comprehensive, well-structured summary of the following \(transcripts.count) audio recording transcripts. Capture the main themes, important details, and conclusions. Write in clear paragraphs.
-        
-        Transcripts:
-        \(combinedText)
-        """
+        let prompt = SummarizationPrompts.summaryUserPrompt(transcript: combinedText)
         
         let response = try await session.respond(to: prompt)
         return response.content.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -16,20 +16,9 @@ actor OpenAISummarizationService: SummarizationService {
             "Recording \(index + 1):\n\(transcript)"
         }.joined(separator: "\n\n---\n\n")
         
-        let systemPrompt = """
-        Analyze all transcripts and extract the key points, removing redundancies.
-        
-        Format your response as JSON with this structure:
-        {
-            "points": ["Key point 1", "Key point 2", "Key point 3"]
-        }
-        
-        Only output valid JSON, no other text.
-        """
-        
         let response = try await callOpenAIChat(
-            systemPrompt: systemPrompt,
-            userMessage: "Extract key points from these transcripts:\n\n\(combinedTranscripts)",
+            systemPrompt: SummarizationPrompts.keyPointsJSONSystemPrompt(),
+            userMessage: "Extract key points from this transcript:\n\n\(combinedTranscripts)",
             apiKey: apiKey
         )
         
@@ -45,21 +34,9 @@ actor OpenAISummarizationService: SummarizationService {
             "Recording \(index + 1):\n\(transcript)"
         }.joined(separator: "\n\n---\n\n")
         
-        let systemPrompt = """
-        Create a well-structured, detailed summary that captures the main themes, important details, and conclusions.
-        Write in clear paragraphs.
-        
-        Format your response as JSON with this structure:
-        {
-            "summary": "Your comprehensive summary here"
-        }
-        
-        Only output valid JSON, no other text.
-        """
-        
         let response = try await callOpenAIChat(
-            systemPrompt: systemPrompt,
-            userMessage: "Create a comprehensive summary of these transcripts:\n\n\(combinedTranscripts)",
+            systemPrompt: SummarizationPrompts.summaryJSONSystemPrompt(),
+            userMessage: "Summarize this transcript:\n\n\(combinedTranscripts)",
             apiKey: apiKey
         )
         
