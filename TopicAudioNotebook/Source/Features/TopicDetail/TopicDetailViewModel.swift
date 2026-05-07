@@ -5,8 +5,6 @@ import Combine
 final class TopicDetailViewModel: ObservableObject {
     @Published private(set) var topic: Topic
     @Published private(set) var isRecording = false
-    @Published private(set) var isConsolidating = false
-    @Published private(set) var isGeneratingTopicSummary = false
     @Published var showingSummary = false
     @Published var showingNoteEditor = false
     @Published var showingRecordingSession = false
@@ -26,11 +24,7 @@ final class TopicDetailViewModel: ObservableObject {
         let seconds = Int(total) % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
-    
-    var canConsolidate: Bool {
-        topic.hasContentForSummary && !isConsolidating
-    }
-    
+        
     var hasSummary: Bool {
         topic.consolidatedSummary != nil
     }
@@ -118,30 +112,15 @@ final class TopicDetailViewModel: ObservableObject {
     }
     
     // MARK: - Summary Actions
-    
-    func consolidate() {
-        isConsolidating = true
-        Task {
-            await repository.consolidateSummary(for: topicId)
-            isConsolidating = false
-            if repository.topic(for: topicId)?.consolidatedSummary != nil {
-                showingSummary = true
-            }
-        }
-    }
-    
+
     func generateTopicSummary() {
-        isGeneratingTopicSummary = true
         Task {
             await repository.consolidateSummary(for: topicId)
-            isGeneratingTopicSummary = false
         }
     }
     
     func generateTopicSummaryAsync() async {
-        isGeneratingTopicSummary = true
         await repository.consolidateSummary(for: topicId)
-        isGeneratingTopicSummary = false
     }
     
     func presentSummary() {

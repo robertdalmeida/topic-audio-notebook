@@ -4,7 +4,6 @@ struct TopicSummarySection: View {
     let summary: String?
     let points: [String]?
     let hasContent: Bool
-    let isGenerating: Bool
     let onGenerate: () -> Void
     
     private var hasSummary: Bool {
@@ -17,11 +16,10 @@ struct TopicSummarySection: View {
         Group {
             if hasSummary {
                 SummaryContentView(
-                    points: points,
-                    isGenerating: isGenerating
+                    points: points
                 )
             } else if hasContent {
-                GenerateSummaryView(isGenerating: isGenerating, onGenerate: onGenerate)
+                GenerateSummaryView(onGenerate: onGenerate)
             } else {
                 NoContentView()
             }
@@ -33,24 +31,12 @@ struct TopicSummarySection: View {
 
 private struct SummaryContentView: View {
     let points: [String]?
-    let isGenerating: Bool
-
     let maxPointsToShow = 10
 
     @State private var isExpanded = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if isGenerating {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .scaleEffect(0.7)
-                    Text("Updating summary...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
             if let points = points, !points.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Key Points")
@@ -83,7 +69,6 @@ private struct SummaryContentView: View {
 // MARK: - Generate Summary View
 
 private struct GenerateSummaryView: View {
-    let isGenerating: Bool
     let onGenerate: () -> Void
     
     var body: some View {
@@ -123,7 +108,6 @@ private struct NoContentView: View {
                 summary: "This is a sample summary of the topic covering multiple recordings.",
                 points: ["First point", "Second point", "Third point"],
                 hasContent: true,
-                isGenerating: false,
                 onGenerate: { }
             )
         }
@@ -137,7 +121,6 @@ private struct NoContentView: View {
                 summary: "This is a sample summary of the topic covering multiple recordings.",
                 points: ["First point", "Second point", "Third point"],
                 hasContent: true,
-                isGenerating: true,
                 onGenerate: { }
             )
         }
@@ -151,7 +134,6 @@ private struct NoContentView: View {
                 summary: nil,
                 points: nil,
                 hasContent: true,
-                isGenerating: false,
                 onGenerate: { }
             )
         }
@@ -165,7 +147,6 @@ private struct NoContentView: View {
                 summary: nil,
                 points: nil,
                 hasContent: false,
-                isGenerating: false,
                 onGenerate: { }
             )
         }

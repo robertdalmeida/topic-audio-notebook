@@ -16,7 +16,6 @@ struct TopicDetailView: View {
         }
         .listStyle(.insetGrouped)
         .navigationTitle(viewModel.topic.name)
-        .toolbar { topToolbar }
         .sheet(isPresented: $viewModel.showingNoteEditor) {
             NoteEditorView(note: viewModel.editingNote) { content in
                 viewModel.saveNote(content: content)
@@ -98,7 +97,6 @@ struct TopicDetailView: View {
                 summary: viewModel.topic.consolidatedSummary,
                 points: viewModel.topic.consolidatedPoints,
                 hasContent: viewModel.topic.hasContentForSummary,
-                isGenerating: viewModel.isGeneratingTopicSummary || viewModel.isConsolidating,
                 onGenerate: viewModel.generateTopicSummary
             )
         } header: {
@@ -216,21 +214,6 @@ struct TopicDetailView: View {
         }
     }
     
-    // MARK: - Toolbar
-    
-    @ToolbarContentBuilder
-    private var topToolbar: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Button(action: viewModel.consolidate) {
-                if viewModel.isConsolidating {
-                    ProgressView()
-                } else {
-                    Label("Consolidate", systemImage: "doc.on.doc")
-                }
-            }
-            .disabled(!viewModel.canConsolidate)
-        }
-    }
 }
 
 #Preview {
