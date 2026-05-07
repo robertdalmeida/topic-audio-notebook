@@ -65,6 +65,7 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     }
     
     func setProvider(_ provider: SummarizationProvider) {
+        log.info("[SummarizationServiceFactory] Switching provider to: \(provider)", category: .summarization)
         currentProvider = provider
         Task { @MainActor in
             SummarizationStateManager.shared.resetState()
@@ -88,9 +89,16 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     }
     
     func preloadCurrentService(progressHandler: (@Sendable (Double) -> Void)? = nil) async throws {
+        log.info("[SummarizationServiceFactory] Preloading service: \(currentProvider)", category: .summarization)
         let service = currentService
         if let loadable = service as? LoadableSummarizationService {
-            try await loadable.preloadModel(progressHandler: progressHandler)
+            do {
+                try await loadable.preloadModel(progressHandler: progressHandler)
+                log.info("[SummarizationServiceFactory] Service preloaded successfully", category: .summarization)
+            } catch {
+                log.error("[SummarizationServiceFactory] Preloading failed: \(error.localizedDescription)", category: .summarization)
+                throw error
+            }
         }
     }
     

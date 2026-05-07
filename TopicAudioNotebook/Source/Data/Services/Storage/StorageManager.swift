@@ -30,7 +30,10 @@ class StorageManager: ObservableObject {
     func switchStorage(to type: StorageType, migrateData: Bool = true, topics: [Topic]) async throws {
         guard type != currentStorageType else { return }
         
+        log.info("[StorageManager] Switching storage from \(currentStorageType) to \(type)", category: .general)
+        
         if migrateData {
+            log.info("[StorageManager] Migrating data to new storage provider", category: .general)
             let newProvider: StorageProvider = type == .file ? fileStorage : coreDataStorage
             try await newProvider.saveTopics(topics)
         }
@@ -40,11 +43,22 @@ class StorageManager: ObservableObject {
     }
     
     func saveTopics(_ topics: [Topic]) async throws {
-        try await currentProvider.saveTopics(topics)
+        do {
+            try await currentProvider.saveTopics(topics)
+        } catch {
+            log.error("[StorageManager] Failed to save topics: \(error.localizedDescription)", category: .general)
+            throw error
+        }
     }
     
     func loadTopics() async throws -> [Topic] {
-        try await currentProvider.loadTopics()
+        log.info("[StorageManager] Loading topics from \(currentStorageType)", category: .general)
+        do {
+            return try await currentProvider.loadTopics()
+        } catch {
+            log.error("[StorageManager] Failed to load topics: \(error.localizedDescription)", category: .general)
+            throw error
+        }
     }
     
     func saveAudioFile(data: Data, filename: String) async throws -> URL {

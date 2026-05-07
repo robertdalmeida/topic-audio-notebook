@@ -41,8 +41,10 @@ class AudioRecorder: NSObject, ObservableObject {
     }
     
     func startRecording(to directory: URL) async -> URL? {
+        log.info("[AudioRecorder] Starting recording to directory: \(directory.lastPathComponent)", category: .audio)
         let hasPermission = await requestPermission()
         guard hasPermission else {
+            log.error("[AudioRecorder] Microphone permission denied", category: .audio)
             errorMessage = "Microphone permission denied"
             return nil
         }
@@ -77,6 +79,7 @@ class AudioRecorder: NSObject, ObservableObject {
             
             return fileURL
         } catch {
+            log.error("[AudioRecorder] Failed to start recording: \(error.localizedDescription)", category: .audio)
             errorMessage = "Failed to start recording: \(error.localizedDescription)"
             return nil
         }
@@ -84,6 +87,7 @@ class AudioRecorder: NSObject, ObservableObject {
     
     func pauseRecording() {
         guard state == .recording, let recorder = audioRecorder else { return }
+        log.info("[AudioRecorder] Pausing recording", category: .audio)
         recorder.pause()
         pausedTime = recordingTime
         stopTimers()
@@ -93,6 +97,7 @@ class AudioRecorder: NSObject, ObservableObject {
     
     func resumeRecording() {
         guard state == .paused, let recorder = audioRecorder else { return }
+        log.info("[AudioRecorder] Resuming recording", category: .audio)
         recorder.record()
         state = .recording
         startTimers()
@@ -102,6 +107,7 @@ class AudioRecorder: NSObject, ObservableObject {
         guard let recorder = audioRecorder, hasActiveSession else { return nil }
         
         let duration = recorder.currentTime
+        log.info("[AudioRecorder] Stopping recording, duration: \(duration)s", category: .audio)
         recorder.stop()
         stopTimers()
         

@@ -26,12 +26,12 @@ actor FoundationModelsSummarizationService: SummarizationService {
     #endif
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
-        log.info("🧠 [FoundationModels] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[FoundationModelsSummarizationService] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
-            log.warning("🧠 [FoundationModels] Text too short", category: .summarization)
+            log.warning("[FoundationModelsSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -42,7 +42,7 @@ actor FoundationModelsSummarizationService: SummarizationService {
         
         let response = try await session.respond(to: prompt)
         let keyPoints = parseKeyPoints(response.content)
-        log.info("🧠 [FoundationModels] Generated \(keyPoints.count) key points", category: .summarization)
+        log.info("[FoundationModelsSummarizationService] Generated \(keyPoints.count) key points", category: .summarization)
         return keyPoints
         #else
         throw SummarizationError.processingFailed("Foundation Models not available")
@@ -50,12 +50,12 @@ actor FoundationModelsSummarizationService: SummarizationService {
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
-        log.info("🧠 [FoundationModels] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[FoundationModelsSummarizationService] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
-            log.warning("🧠 [FoundationModels] Text too short", category: .summarization)
+            log.warning("[FoundationModelsSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -66,7 +66,7 @@ actor FoundationModelsSummarizationService: SummarizationService {
         
         let response = try await session.respond(to: prompt)
         let summary = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
-        log.info("🧠 [FoundationModels] Summary generated, length: \(summary.count) chars", category: .summarization)
+        log.info("[FoundationModelsSummarizationService] Summary generated, length: \(summary.count) chars", category: .summarization)
         return summary
         #else
         throw SummarizationError.processingFailed("Foundation Models not available")
@@ -107,7 +107,7 @@ enum FoundationModelsAvailability {
             }
             return false
         }()
-        print("FoundationModelsAvailability: available:\(available)")
+        log.info("[FoundationModelsSummarizationService] Availability: \(available)", category: .summarization)
 
         return available
     }

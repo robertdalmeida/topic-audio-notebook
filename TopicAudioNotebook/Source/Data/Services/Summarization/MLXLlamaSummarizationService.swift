@@ -44,6 +44,7 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
         
         MLX.GPU.set(cacheLimit: Self.gpuCacheLimit)
         
+        log.info("[MLXLlamaSummarizationService] Loading Llama-3.2-1B model...", category: .summarization)
         let modelConfig = ModelConfiguration(id: "mlx-community/Llama-3.2-1B-Instruct-4bit")
         
         modelContainer = try await LLMModelFactory.shared.loadContainer(configuration: modelConfig) { [self] progress in
@@ -52,9 +53,9 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
                 await self.updateProgress(fraction)
             }
             progressHandler?(fraction)
-            print("Loading Llama-3.2-1B model: \(Int(fraction * 100))%")
         }
         _loadingProgress = 1.0
+        log.info("[MLXLlamaSummarizationService] Model loaded successfully", category: .summarization)
     }
     
     private func updateProgress(_ progress: Double) {
@@ -71,9 +72,11 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
     #endif
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
+        log.info("[MLXLlamaSummarizationService] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
+            log.warning("[MLXLlamaSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -81,21 +84,26 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
         try await loadModelIfNeeded()
         
         guard let container = modelContainer else {
+            log.error("[MLXLlamaSummarizationService] Failed to load model", category: .summarization)
             throw SummarizationError.processingFailed("Failed to load MLX Llama model")
         }
         
         let prompt = buildKeyPointsPrompt(combinedText: combinedText, count: transcripts.count)
         let response = try await generate(prompt: prompt, container: container)
-        return parseKeyPoints(response)
+        let keyPoints = parseKeyPoints(response)
+        log.info("[MLXLlamaSummarizationService] Generated \(keyPoints.count) key points", category: .summarization)
+        return keyPoints
         #else
         throw SummarizationError.processingFailed("MLX framework not available")
         #endif
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
+        log.info("[MLXLlamaSummarizationService] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
+            log.warning("[MLXLlamaSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -103,12 +111,15 @@ actor MLXLlamaSummarizationService: LoadableSummarizationService {
         try await loadModelIfNeeded()
         
         guard let container = modelContainer else {
+            log.error("[MLXLlamaSummarizationService] Failed to load model", category: .summarization)
             throw SummarizationError.processingFailed("Failed to load MLX Llama model")
         }
         
         let prompt = buildFullSummaryPrompt(combinedText: combinedText, count: transcripts.count)
         let response = try await generate(prompt: prompt, container: container)
-        return response.trimmingCharacters(in: .whitespacesAndNewlines)
+        let summary = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        log.info("[MLXLlamaSummarizationService] Summary generated, length: \(summary.count) chars", category: .summarization)
+        return summary
         #else
         throw SummarizationError.processingFailed("MLX framework not available")
         #endif

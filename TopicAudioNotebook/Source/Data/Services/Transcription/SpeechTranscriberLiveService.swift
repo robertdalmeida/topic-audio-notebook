@@ -22,17 +22,17 @@ final class SpeechTranscriberLiveService: ObservableObject, LiveTranscriptionSer
     private var inputContinuation: AsyncStream<AnalyzerInput>.Continuation?
     
     func startTranscribing() async {
-        log.info("🧠 [SpeechTranscriberLive] Starting live transcription...", category: .transcription)
+        log.info("[SpeechTranscriberLiveService] Starting live transcription", category: .transcription)
         
         let authorized = await requestAuthorization()
         guard authorized else {
-            log.error("🧠 [SpeechTranscriberLive] Not authorized", category: .transcription)
+            log.error("[SpeechTranscriberLiveService] Speech recognition authorization denied", category: .transcription)
             errorMessage = "Speech recognition not authorized"
             return
         }
         
         guard SpeechTranscriber.isAvailable else {
-            log.error("🧠 [SpeechTranscriberLive] Not available on this device", category: .transcription)
+            log.error("[SpeechTranscriberLiveService] SpeechTranscriber not available on this device", category: .transcription)
             errorMessage = "SpeechTranscriber not available on this device"
             return
         }
@@ -41,15 +41,14 @@ final class SpeechTranscriberLiveService: ObservableObject, LiveTranscriptionSer
             try await setupAudioSession()
             try await startRecognition()
             isTranscribing = true
-            log.info("🧠 [SpeechTranscriberLive] Live transcription started", category: .transcription)
         } catch {
-            log.error("🧠 [SpeechTranscriberLive] Failed to start: \(error.localizedDescription)", category: .transcription)
+            log.error("[SpeechTranscriberLiveService] Failed to start: \(error.localizedDescription)", category: .transcription)
             errorMessage = "Failed to start transcription: \(error.localizedDescription)"
         }
     }
     
     func stopTranscribing() {
-        log.info("🧠 [SpeechTranscriberLive] Stopping live transcription", category: .transcription)
+        log.info("[SpeechTranscriberLiveService] Stopping live transcription", category: .transcription)
         
         inputContinuation?.finish()
         inputContinuation = nil

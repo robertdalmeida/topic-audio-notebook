@@ -27,6 +27,7 @@ class AudioPlayer: NSObject, ObservableObject {
     }
     
     func load(url: URL) {
+        log.info("[AudioPlayer] Loading audio from: \(url.lastPathComponent)", category: .audio)
         stop()
         
         do {
@@ -41,12 +42,17 @@ class AudioPlayer: NSObject, ObservableObject {
             duration = audioPlayer?.duration ?? 0
             currentTime = 0
         } catch {
+            log.error("[AudioPlayer] Failed to load audio: \(error.localizedDescription)", category: .audio)
             errorMessage = "Failed to load audio: \(error.localizedDescription)"
         }
     }
     
     func play() {
-        guard let player = audioPlayer else { return }
+        guard let player = audioPlayer else { 
+            log.warning("[AudioPlayer] Attempted to play without loaded audio", category: .audio)
+            return 
+        }
+        log.info("[AudioPlayer] Starting playback", category: .audio)
         player.rate = playbackRate
         player.play()
         isPlaying = true
@@ -54,12 +60,16 @@ class AudioPlayer: NSObject, ObservableObject {
     }
     
     func pause() {
+        log.info("[AudioPlayer] Pausing playback", category: .audio)
         audioPlayer?.pause()
         isPlaying = false
         stopTimer()
     }
     
     func stop() {
+        if audioPlayer != nil {
+            log.info("[AudioPlayer] Stopping playback", category: .audio)
+        }
         audioPlayer?.stop()
         audioPlayer = nil
         isPlaying = false

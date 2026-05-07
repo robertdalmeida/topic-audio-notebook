@@ -5,16 +5,14 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
     let providerType: TranscriptionProvider = .sfSpeechRecognizer
     
     func transcribe(audioURL: URL) async throws -> String {
-        log.info("🎤 [SFSpeechTranscriptionService] transcribe() called", category: .transcription)
-        log.info("🎤 [SFSpeechTranscriptionService] Audio URL: \(audioURL.lastPathComponent)", category: .transcription)
+        log.info("[SFSpeechTranscriptionService] Starting transcription for \(audioURL.lastPathComponent)", category: .transcription)
 
         let authorized = await requestAuthorization()
         guard authorized else {
-            log.error("🎤 [SFSpeechTranscriptionService] Not authorized", category: .transcription)
+            log.error("[SFSpeechTranscriptionService] Speech recognition authorization denied", category: .transcription)
             throw TranscriptionServiceError.notAuthorized
         }
         
-        log.info("🎤 [SFSpeechTranscriptionService] Authorization granted, starting transcription...", category: .transcription)
         return try await performTranscription(audioURL: audioURL)
     }
     
@@ -29,7 +27,7 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
     private func performTranscription(audioURL: URL) async throws -> String {
         guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
               recognizer.isAvailable else {
-            log.error("🎤 [SFSpeechTranscriptionService] Recognizer unavailable", category: .transcription)
+            log.error("[SFSpeechTranscriptionService] SFSpeechRecognizer unavailable", category: .transcription)
             throw TranscriptionServiceError.recognizerUnavailable
         }
         
@@ -37,12 +35,10 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
         request.shouldReportPartialResults = false
         request.addsPunctuation = true
         
-        log.info("🎤 [SFSpeechTranscriptionService] Starting recognition task...", category: .transcription)
-
         return try await withCheckedThrowingContinuation { continuation in
             recognizer.recognitionTask(with: request) { result, error in
                 if let error = error {
-                    log.error("🎤 [SFSpeechTranscriptionService] Recognition failed: \(error.localizedDescription)", category: .transcription)
+                    log.error("[SFSpeechTranscriptionService] Recognition failed: \(error.localizedDescription)", category: .transcription)
                     continuation.resume(throwing: TranscriptionServiceError.recognitionFailed(error.localizedDescription))
                     return
                 }
@@ -50,7 +46,7 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
                 guard let result = result, result.isFinal else { return }
                 
                 let transcript = result.bestTranscription.formattedString
-                log.info("🎤 [SFSpeechTranscriptionService] Transcription complete, length: \(transcript.count) chars", category: .transcription)
+                log.info("[SFSpeechTranscriptionService] Transcription complete (\(transcript.count) chars)", category: .transcription)
                 continuation.resume(returning: transcript)
             }
         }

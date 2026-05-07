@@ -5,34 +5,34 @@ actor OnDeviceSummarizationService: SummarizationService {
     nonisolated let providerType: SummarizationProvider = .onDevice
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
-        log.info("📝 [OnDevice] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[OnDeviceSummarizationService] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: " ")
         
         guard combinedText.count >= 20 else {
-            log.warning("📝 [OnDevice] Text too short for key points", category: .summarization)
+            log.warning("[OnDeviceSummarizationService] Text too short for key points", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
         let sentences = extractSentences(from: combinedText)
         let keyPoints = extractKeyPoints(from: sentences, maxPoints: 10)
-        log.info("📝 [OnDevice] Generated \(keyPoints.count) key points", category: .summarization)
+        log.info("[OnDeviceSummarizationService] Generated \(keyPoints.count) key points", category: .summarization)
         return keyPoints
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
-        log.info("📝 [OnDevice] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[OnDeviceSummarizationService] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: " ")
         
         guard combinedText.count >= 20 else {
-            log.warning("📝 [OnDevice] Text too short for summary", category: .summarization)
+            log.warning("[OnDeviceSummarizationService] Text too short for summary", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
         let sentences = extractSentences(from: combinedText)
         let summary = generateConsolidatedSummary(from: transcripts, sentences: sentences)
-        log.info("📝 [OnDevice] Summary generated, length: \(summary.count) chars", category: .summarization)
+        log.info("[OnDeviceSummarizationService] Summary generated, length: \(summary.count) chars", category: .summarization)
         return summary
     }
     

@@ -10,14 +10,14 @@ final class TranscriptionServiceFactory: @unchecked Sendable {
     private static let providerKey = "TranscriptionProvider"
     
     private init() {
-        log.info("TranscriptionServiceFactory initialized", category: .transcription)
+        log.info("[TranscriptionServiceFactory] Initializing", category: .transcription)
     }
     
     private var speechTranscriberService: (any TranscriptionServiceProtocol)? {
         if !speechTranscriberServiceCreated {
             speechTranscriberServiceCreated = true
             if #available(iOS 26.0, macOS 26.0, *) {
-                log.info("Creating SpeechTranscriberService (lazy)", category: .transcription)
+                log.info("[TranscriptionServiceFactory] Creating SpeechTranscriberService", category: .transcription)
                 _speechTranscriberService = SpeechTranscriberService()
             }
         }
@@ -34,12 +34,12 @@ final class TranscriptionServiceFactory: @unchecked Sendable {
             return provider
         }
         set {
+            log.info("[TranscriptionServiceFactory] Provider updated to: \(newValue)", category: .transcription)
             UserDefaults.standard.set(newValue.rawValue, forKey: Self.providerKey)
         }
     }
     
     var currentService: any TranscriptionServiceProtocol {
-        log.debug("Getting currentService for provider: \(currentProvider)", category: .transcription)
         switch currentProvider {
         case .sfSpeechRecognizer:
             return sfSpeechService
@@ -58,9 +58,8 @@ final class TranscriptionServiceFactory: @unchecked Sendable {
     }
     
     func setProvider(_ provider: TranscriptionProvider) {
-        log.info("Setting provider to: \(provider)", category: .transcription)
         guard provider.isAvailable else {
-            log.warning("Provider \(provider) is not available", category: .transcription)
+            log.warning("[TranscriptionServiceFactory] Provider \(provider) is not available on this device", category: .transcription)
             return
         }
         currentProvider = provider
@@ -68,12 +67,12 @@ final class TranscriptionServiceFactory: @unchecked Sendable {
     
     @MainActor
     func createLiveTranscriber() -> any LiveTranscriptionServiceProtocol {
-        log.info("Creating live transcriber for provider: \(currentProvider)", category: .transcription)
+        log.info("[TranscriptionServiceFactory] Creating live transcriber for: \(currentProvider)", category: .transcription)
         switch currentProvider {
         case .sfSpeechRecognizer:
             return SFSpeechLiveTranscriber()
         case .speechTranscriber:
-            log.warning("SpeechTranscriber live service not yet stable, falling back to SFSpeechRecognizer", category: .transcription)
+            log.warning("[TranscriptionServiceFactory] SpeechTranscriber live service not yet stable, falling back to SFSpeechLiveTranscriber", category: .transcription)
             return SFSpeechLiveTranscriber()
         }
     }

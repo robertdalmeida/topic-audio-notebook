@@ -21,7 +21,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         stateManager: SummarizationStateManager = .shared,
         transcriptionFactory: TranscriptionServiceFactory = .shared
     ) {
-        log.info("TopicRepository:init")
+        log.info("[TopicRepository] Initializing", category: .repository)
         self.summarizationService = StateManagedSummarizationService(stateManager: stateManager)
         self.transcriptionFactory = transcriptionFactory
         currentStorageType = storageManager.currentStorageType
@@ -33,12 +33,14 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     // MARK: - Topic Management
     
     func addTopic(name: String, description: String = "", color: TopicColor = .blue) {
+        log.info("[TopicRepository] Adding topic: \(name)", category: .repository)
         let topic = Topic(name: name, description: description, color: color)
         topics.append(topic)
         saveTopics()
     }
     
     func updateTopic(_ topic: Topic) {
+        log.info("[TopicRepository] Updating topic: \(topic.name)", category: .repository)
         if let index = topics.firstIndex(where: { $0.id == topic.id }) {
             var updatedTopic = topic
             updatedTopic.updatedAt = Date()
@@ -48,6 +50,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     }
     
     func deleteTopic(_ topic: Topic) {
+        log.info("[TopicRepository] Deleting topic: \(topic.name)", category: .repository)
         topics.removeAll { $0.id == topic.id }
         deleteTopicRecordings(topic)
         saveTopics()
@@ -58,6 +61,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     func addRecording(to topicId: UUID, title: String, fileURL: URL, duration: TimeInterval) {
         guard let index = topics.firstIndex(where: { $0.id == topicId }) else { return }
         
+        log.info("[TopicRepository] Adding recording '\(title)' to topic: \(topics[index].name)", category: .repository)
         let recording = Recording(title: title, fileURL: fileURL, duration: duration)
         topics[index].recordings.append(recording)
         topics[index].updatedAt = Date()
@@ -73,6 +77,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     func deleteRecording(_ recording: Recording, from topicId: UUID) {
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
         
+        log.info("[TopicRepository] Deleting recording '\(recording.title)' from topic: \(topics[topicIndex].name)", category: .repository)
         topics[topicIndex].recordings.removeAll { $0.id == recording.id }
         topics[topicIndex].updatedAt = Date()
         topics[topicIndex].consolidatedSummary = nil
@@ -93,6 +98,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     func addNote(to topicId: UUID, content: String) {
         guard let index = topics.firstIndex(where: { $0.id == topicId }) else { return }
         
+        log.info("[TopicRepository] Adding note to topic: \(topics[index].name)", category: .repository)
         let note = Note(content: content)
         topics[index].notes.append(note)
         topics[index].updatedAt = Date()
@@ -217,27 +223,23 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     }
     
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async {
-        log.info("transcribeRecording() called for recordingId: \(recordingId)", category: .repository)
-        
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
               let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }) else {
-            log.error("Recording or topic not found", category: .repository)
+            log.error("[TopicRepository] Recording or topic not found for transcription", category: .repository)
             return
         }
         
         let fileURL = topics[topicIndex].recordings[recordingIndex].fileURL
-        log.info("Starting transcription for file: \(fileURL.path)", category: .repository)
-        log.info("Current provider: \(transcriptionFactory.currentProvider)", category: .repository)
+        log.info("[TopicRepository] Starting transcription for \(fileURL.lastPathComponent) using \(transcriptionFactory.currentProvider)", category: .repository)
         
         topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .inProgress
         
         do {
-            log.info("Calling transcriptionFactory.currentService.transcribe()...", category: .repository)
             let transcript = try await transcriptionFactory.currentService.transcribe(
                 audioURL: fileURL
             )
             
-            log.info("Transcription completed, length: \(transcript.count)", category: .repository)
+            log.info("[TopicRepository] Transcription completed (\(transcript.count) chars)", category: .repository)
             topics[topicIndex].recordings[recordingIndex].transcript = transcript
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .completed
             topics[topicIndex].updatedAt = Date()
@@ -245,7 +247,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
             
             await consolidateSummary(for: topicId)
         } catch {
-            log.error("Transcription error: \(error)", category: .repository)
+            log.error("[TopicRepository] Transcription failed: \(error.localizedDescription)", category: .repository)
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .failed
             errorMessage = "Transcription failed: \(error.localizedDescription)"
             saveTopics()
@@ -308,10 +310,12 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         
         let allContent = topics[topicIndex].allContent
         guard !allContent.isEmpty else {
+            log.warning("[TopicRepository] No content available to consolidate for topic: \(topics[topicIndex].name)", category: .repository)
             errorMessage = "No content available to consolidate"
             return
         }
         
+        log.info("[TopicRepository] Consolidating summary for topic: \(topics[topicIndex].name)", category: .repository)
         isLoading = true
         
         do {
@@ -320,11 +324,13 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
             
             let (points, summary) = try await (keyPoints, fullSummary)
             
+            log.info("[TopicRepository] Consolidation complete for topic: \(topics[topicIndex].name)", category: .repository)
             topics[topicIndex].consolidatedSummary = summary
             topics[topicIndex].consolidatedPoints = points
             topics[topicIndex].updatedAt = Date()
             saveTopics()
         } catch {
+            log.error("[TopicRepository] Consolidation failed: \(error.localizedDescription)", category: .repository)
             errorMessage = "Consolidation failed: \(error.localizedDescription)"
         }
         

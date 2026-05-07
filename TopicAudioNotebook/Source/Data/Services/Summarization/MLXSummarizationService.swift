@@ -35,6 +35,7 @@ actor MLXSummarizationService: LoadableSummarizationService {
         _loadingProgress = 0.0
         defer { _isLoading = false }
         
+        log.info("[MLXSummarizationService] Loading Phi-3.5 model...", category: .summarization)
         let modelConfig = ModelConfiguration(id: "mlx-community/Phi-3.5-mini-instruct-4bit")
         
         modelContainer = try await LLMModelFactory.shared.loadContainer(configuration: modelConfig) { [self] progress in
@@ -43,9 +44,9 @@ actor MLXSummarizationService: LoadableSummarizationService {
                 await self.updateProgress(fraction)
             }
             progressHandler?(fraction)
-            print("Loading Phi-3.5 model: \(Int(fraction * 100))%")
         }
         _loadingProgress = 1.0
+        log.info("[MLXSummarizationService] Model loaded successfully", category: .summarization)
     }
     
     private func updateProgress(_ progress: Double) {
@@ -61,12 +62,12 @@ actor MLXSummarizationService: LoadableSummarizationService {
     #endif
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
-        log.info("🔮 [MLX-Phi] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[MLXSummarizationService] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
-            log.warning("🔮 [MLX-Phi] Text too short", category: .summarization)
+            log.warning("[MLXSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -74,14 +75,14 @@ actor MLXSummarizationService: LoadableSummarizationService {
         try await loadModelIfNeeded()
         
         guard let container = modelContainer else {
-            log.error("🔮 [MLX-Phi] Failed to load model", category: .summarization)
+            log.error("[MLXSummarizationService] Failed to load model", category: .summarization)
             throw SummarizationError.processingFailed("Failed to load MLX model")
         }
         
         let prompt = buildKeyPointsPrompt(combinedText: combinedText, count: transcripts.count)
         let response = try await generate(prompt: prompt, container: container)
         let keyPoints = parseKeyPoints(response)
-        log.info("🔮 [MLX-Phi] Generated \(keyPoints.count) key points", category: .summarization)
+        log.info("[MLXSummarizationService] Generated \(keyPoints.count) key points", category: .summarization)
         return keyPoints
         #else
         throw SummarizationError.processingFailed("MLX framework not available")
@@ -89,12 +90,12 @@ actor MLXSummarizationService: LoadableSummarizationService {
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
-        log.info("🔮 [MLX-Phi] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[MLXSummarizationService] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
         
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
-            log.warning("🔮 [MLX-Phi] Text too short", category: .summarization)
+            log.warning("[MLXSummarizationService] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -102,14 +103,14 @@ actor MLXSummarizationService: LoadableSummarizationService {
         try await loadModelIfNeeded()
         
         guard let container = modelContainer else {
-            log.error("🔮 [MLX-Phi] Failed to load model", category: .summarization)
+            log.error("[MLXSummarizationService] Failed to load model", category: .summarization)
             throw SummarizationError.processingFailed("Failed to load MLX model")
         }
         
         let prompt = buildFullSummaryPrompt(combinedText: combinedText, count: transcripts.count)
         let response = try await generate(prompt: prompt, container: container)
         let summary = response.trimmingCharacters(in: .whitespacesAndNewlines)
-        log.info("🔮 [MLX-Phi] Summary generated, length: \(summary.count) chars", category: .summarization)
+        log.info("[MLXSummarizationService] Summary generated, length: \(summary.count) chars", category: .summarization)
         return summary
         #else
         throw SummarizationError.processingFailed("MLX framework not available")

@@ -8,10 +8,10 @@ actor OpenAISummarizationService: SummarizationService {
     }
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
-        log.info("🌐 [OpenAI] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[OpenAISummarizationService] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
         
         guard let apiKey = apiKey, !apiKey.isEmpty else {
-            log.error("🌐 [OpenAI] No API key configured", category: .summarization)
+            log.error("[OpenAISummarizationService] No API key configured", category: .summarization)
             throw SummarizationError.noAPIKey
         }
         
@@ -26,15 +26,15 @@ actor OpenAISummarizationService: SummarizationService {
         )
         
         let keyPoints = parseKeyPointsResponse(response)
-        log.info("🌐 [OpenAI] Generated \(keyPoints.count) key points", category: .summarization)
+        log.info("[OpenAISummarizationService] Generated \(keyPoints.count) key points", category: .summarization)
         return keyPoints
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
-        log.info("🌐 [OpenAI] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
+        log.info("[OpenAISummarizationService] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
         
         guard let apiKey = apiKey, !apiKey.isEmpty else {
-            log.error("🌐 [OpenAI] No API key configured", category: .summarization)
+            log.error("[OpenAISummarizationService] No API key configured", category: .summarization)
             throw SummarizationError.noAPIKey
         }
         
@@ -49,7 +49,7 @@ actor OpenAISummarizationService: SummarizationService {
         )
         
         let summary = parseSummaryResponse(response)
-        log.info("🌐 [OpenAI] Summary generated, length: \(summary.count) chars", category: .summarization)
+        log.info("[OpenAISummarizationService] Summary generated, length: \(summary.count) chars", category: .summarization)
         return summary
     }
     
