@@ -8,6 +8,7 @@ import AppKit
 enum SummaryDisplayMode: String, CaseIterable {
     case points = "Key Points"
     case longForm = "Full Summary"
+    case fullContent = "All Content"
 }
 
 // MARK: - SummaryView
@@ -82,18 +83,21 @@ private struct SummaryContentView: View {
     
     @ViewBuilder
     private var summaryContent: some View {
-        if viewModel.displayMode == .points {
+        switch viewModel.displayMode {
+        case .points:
             KeyPointsSection(
                 points: topic.consolidatedPoints,
                 isGenerating: viewModel.isGeneratingKeyPoints,
                 onGenerate: { Task { await viewModel.generateKeyPoints() } }
             )
-        } else {
+        case .longForm:
             LongFormSection(
                 summary: topic.consolidatedSummary,
                 isGenerating: viewModel.isGeneratingSummary,
                 onGenerate: { Task { await viewModel.generateFullSummary() } }
             )
+        case .fullContent:
+            FullContentSection(topic: topic)
         }
     }
 }
@@ -275,6 +279,197 @@ private struct LongFormSection: View {
         }
         .padding()
         .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+// MARK: - Full Content Section
+
+private struct FullContentSection: View {
+    let topic: Topic
+    
+    private var sortedItems: [ContentItem] {
+        var items: [ContentItem] = []
+        
+        for recording in topic.activeRecordings {
+            items.append(ContentItem(
+                id: recording.id,
+                type: .recording,
+                title: recording.title,
+                content: recording.transcript,
+                date: recording.createdAt,
+                duration: recording.duration
+            ))
+        }
+        
+        for note in topic.activeNotes {
+            items.append(ContentItem(
+                id: note.id,
+                type: .note,
+                title: nil,
+                content: note.content,
+                date: note.createdAt,
+                duration: nil
+            ))
+        }
+        
+        return items.sorted { $0.date > $1.date }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("All Content")
+                    .font(.headline)
+                Spacer()
+                
+                if !sortedItems.isEmpty {
+                    CopyButton(text: formattedFullContent)
+                }
+            }
+            .padding(.bottom, 4)
+            
+            if sortedItems.isEmpty {
+                ContentUnavailableView {
+                    Label("No Content", systemImage: "doc.text")
+                } description: {
+                    Text("Add recordings or notes to see content here")
+                }
+                .frame(minHeight: 150)
+            } else {
+                ForEach(sortedItems) { item in
+                    ContentItemView(item: item)
+                }
+            }
+        }
+        .textSelection(.enabled)
+        .padding()
+        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+    }
+    
+    var formattedFullContent: String {
+        var content = "# \(topic.name) - All Content\n\n"
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        
+        for item in sortedItems {
+            let dateString = dateFormatter.string(from: item.date)
+            
+            switch item.type {
+            case .recording:
+                content += "## 🎙️ Recording: \(item.title ?? "Untitled")\n"
+                content += "📅 \(dateString)"
+                if let duration = item.duration {
+                    let minutes = Int(duration) / 60
+                    let seconds = Int(duration) % 60
+                    content += " • ⏱️ \(String(format: "%d:%02d", minutes, seconds))"
+                }
+                content += "\n\n"
+                if let transcript = item.content, !transcript.isEmpty {
+                    content += "### Transcription\n\(transcript)\n\n"
+                } else {
+                    content += "*No transcription available*\n\n"
+                }
+            case .note:
+                content += "## 📝 Note\n"
+                content += "📅 \(dateString)\n\n"
+                if let noteContent = item.content, !noteContent.isEmpty {
+                    content += "\(noteContent)\n\n"
+                }
+            }
+            
+            content += "---\n\n"
+        }
+        
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+private struct ContentItem: Identifiable {
+    let id: UUID
+    let type: ContentItemType
+    let title: String?
+    let content: String?
+    let date: Date
+    let duration: TimeInterval?
+}
+
+private enum ContentItemType {
+    case recording
+    case note
+}
+
+private struct ContentItemView: View {
+    let item: ContentItem
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: item.date)
+    }
+    
+    private var formattedDuration: String? {
+        guard let duration = item.duration else { return nil }
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                Image(systemName: item.type == .recording ? "waveform" : "doc.text")
+                    .foregroundStyle(item.type == .recording ? .blue : .orange)
+                    .font(.headline)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    if item.type == .recording {
+                        Text(item.title ?? "Untitled Recording")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    } else {
+                        Text("Note")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Text(formattedDate)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        if let duration = formattedDuration {
+                            Text("•")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(duration)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            if let content = item.content, !content.isEmpty {
+                Text(content)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .padding(.leading, 28)
+            } else if item.type == .recording {
+                Text("No transcription available")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .italic()
+                    .padding(.leading, 28)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 4)
+        .background(Color(.systemBackground).opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

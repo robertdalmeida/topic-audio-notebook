@@ -22,7 +22,12 @@ final class SummaryViewModel {
     private var cancellables = Set<AnyCancellable>()
     
     var hasSummary: Bool {
-        topic?.consolidatedSummary != nil || topic?.consolidatedPoints != nil
+        topic?.consolidatedSummary != nil || topic?.consolidatedPoints != nil || hasContent
+    }
+    
+    var hasContent: Bool {
+        guard let topic else { return false }
+        return !topic.activeRecordings.isEmpty || !topic.activeNotes.isEmpty
     }
     
     var hasKeyPoints: Bool {
@@ -39,21 +44,81 @@ final class SummaryViewModel {
     
     var shareContent: String {
         guard let topic else { return "" }
-        var content = "# \(topic.name) - Summary\n\n"
+        
+        switch displayMode {
+        case .points:
+            return shareKeyPointsContent(topic: topic)
+        case .longForm:
+            return shareLongFormContent(topic: topic)
+        case .fullContent:
+            return shareFullContent(topic: topic)
+        }
+    }
+    
+    private func shareKeyPointsContent(topic: Topic) -> String {
+        var content = "# \(topic.name) - Key Points\n\n"
         
         if let points = topic.consolidatedPoints, !points.isEmpty {
-            content += "## Key Points\n\n"
             for (index, point) in points.enumerated() {
                 content += "\(index + 1). \(point)\n"
             }
-            content += "\n"
-        }
-        
-        if let summary = topic.consolidatedSummary {
-            content += "## Full Summary\n\n\(summary)"
         }
         
         return content
+    }
+    
+    private func shareLongFormContent(topic: Topic) -> String {
+        var content = "# \(topic.name) - Summary\n\n"
+        
+        if let summary = topic.consolidatedSummary {
+            content += summary
+        }
+        
+        return content
+    }
+    
+    private func shareFullContent(topic: Topic) -> String {
+        var content = "# \(topic.name) - All Content\n\n"
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        
+        var items: [(date: Date, text: String)] = []
+        
+        for recording in topic.activeRecordings {
+            var itemText = "## 🎙️ Recording: \(recording.title)\n"
+            itemText += "📅 \(dateFormatter.string(from: recording.createdAt))"
+            
+            let minutes = Int(recording.duration) / 60
+            let seconds = Int(recording.duration) % 60
+            itemText += " • ⏱️ \(String(format: "%d:%02d", minutes, seconds))\n\n"
+            
+            if let transcript = recording.transcript, !transcript.isEmpty {
+                itemText += "### Transcription\n\(transcript)\n\n"
+            } else {
+                itemText += "*No transcription available*\n\n"
+            }
+            
+            itemText += "---\n\n"
+            items.append((recording.createdAt, itemText))
+        }
+        
+        for note in topic.activeNotes {
+            var itemText = "## 📝 Note\n"
+            itemText += "📅 \(dateFormatter.string(from: note.createdAt))\n\n"
+            itemText += "\(note.content)\n\n"
+            itemText += "---\n\n"
+            items.append((note.createdAt, itemText))
+        }
+        
+        items.sort { $0.date > $1.date }
+        
+        for item in items {
+            content += item.text
+        }
+        
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     // MARK: - Initialization
