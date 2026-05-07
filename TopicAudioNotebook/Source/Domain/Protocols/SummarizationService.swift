@@ -11,6 +11,7 @@ struct SummaryResult: Sendable {
 }
 
 enum SummarizationProvider: String, CaseIterable, Codable {
+    case disabled = "Disabled"
     case onDevice = "On-Device"
     case foundationModels = "Apple Intelligence"
     case mlxPhi = "Phi-3.5 (MLX)"
@@ -19,6 +20,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
     
     var description: String {
         switch self {
+        case .disabled:
+            return "Summarization features are turned off"
         case .onDevice:
             return "Uses Apple's NaturalLanguage framework for privacy-focused, offline summarization"
         case .foundationModels:
@@ -34,6 +37,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
     
     var icon: String {
         switch self {
+        case .disabled:
+            return "xmark.circle"
         case .onDevice:
             return "iphone"
         case .foundationModels:
@@ -49,6 +54,8 @@ enum SummarizationProvider: String, CaseIterable, Codable {
     
     var isAvailable: Bool {
         switch self {
+        case .disabled:
+            return true
         case .onDevice:
             return true
         case .foundationModels:
@@ -60,6 +67,10 @@ enum SummarizationProvider: String, CaseIterable, Codable {
         case .openAI:
             return true
         }
+    }
+    
+    var isEnabled: Bool {
+        self != .disabled
     }
     
     static var availableProviders: [SummarizationProvider] {

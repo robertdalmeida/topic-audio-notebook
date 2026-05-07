@@ -174,6 +174,30 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         }
     }
     
+    func convertRecordingToNote(_ recording: Recording, in topicId: UUID, noteContent: String) {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        log.info("[TopicRepository] Converting recording '\(recording.title)' to note in topic: \(topics[topicIndex].name)", category: .repository)
+        
+        let note = Note(content: noteContent)
+        topics[topicIndex].notes.append(note)
+        
+        topics[topicIndex].recordings.removeAll { $0.id == recording.id }
+        
+        try? fileManager.removeItem(at: recording.fileURL)
+        
+        topics[topicIndex].updatedAt = Date()
+        topics[topicIndex].consolidatedSummary = nil
+        topics[topicIndex].consolidatedPoints = nil
+        saveTopics()
+        
+        if topics[topicIndex].hasContentForSummary {
+            Task {
+                await consolidateSummary(for: topicId)
+            }
+        }
+    }
+    
     // MARK: - Archive/Unarchive
     
     func archiveRecording(_ recording: Recording, in topicId: UUID) {

@@ -32,6 +32,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     var currentService: any SummarizationService {
         switch currentProvider {
+        case .disabled:
+            return onDeviceService
         case .onDevice:
             return onDeviceService
         case .foundationModels:
@@ -47,6 +49,8 @@ final class SummarizationServiceFactory: @unchecked Sendable {
     
     func service(for provider: SummarizationProvider) -> any SummarizationService {
         switch provider {
+        case .disabled:
+            return onDeviceService
         case .onDevice:
             return onDeviceService
         case .foundationModels:

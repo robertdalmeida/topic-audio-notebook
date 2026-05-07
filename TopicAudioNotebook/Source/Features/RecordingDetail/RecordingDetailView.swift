@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RecordingDetailView: View {
     @StateObject var viewModel: RecordingDetailViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var showConvertSheet = false
     
     var body: some View {
         ScrollView {
@@ -33,6 +35,10 @@ struct RecordingDetailView: View {
                         onGenerate: viewModel.generateSummary
                     )
                 }
+                
+                if viewModel.canConvertToNote {
+                    convertToNoteSection
+                }
             }
             .padding(.vertical)
         }
@@ -44,6 +50,19 @@ struct RecordingDetailView: View {
                     Image(systemName: "square.and.arrow.up")
                 }
             }
+        }
+        .sheet(isPresented: $showConvertSheet) {
+            ConvertToNoteView(
+                recording: viewModel.recording,
+                onConvert: { content in
+                    viewModel.convertToNote(content: content)
+                    showConvertSheet = false
+                    dismiss()
+                },
+                onCancel: {
+                    showConvertSheet = false
+                }
+            )
         }
         .onAppear(perform: viewModel.onAppear)
         .onDisappear(perform: viewModel.onDisappear)
@@ -59,6 +78,29 @@ struct RecordingDetailView: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal)
+    }
+    
+    // MARK: - Convert to Note Section
+    
+    private var convertToNoteSection: some View {
+        VStack(spacing: 12) {
+            Divider()
+                .padding(.horizontal)
+            
+            Button {
+                showConvertSheet = true
+            } label: {
+                HStack {
+                    Image(systemName: "doc.text")
+                    Text("Convert to Note")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .padding(.horizontal)
+        }
+        .padding(.top, 8)
     }
 }
 

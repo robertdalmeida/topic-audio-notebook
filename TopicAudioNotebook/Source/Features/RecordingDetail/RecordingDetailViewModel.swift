@@ -102,4 +102,13 @@ final class RecordingDetailViewModel: ObservableObject {
             isTranscribing = false
         }
     }
+    
+    var canConvertToNote: Bool {
+        hasTranscript || hasKeyPoints || hasSummary
+    }
+    
+    func convertToNote(content: String) {
+        audioPlayer.stop()
+        repository.convertRecordingToNote(recording, in: topicId, noteContent: content)
+    }
 }

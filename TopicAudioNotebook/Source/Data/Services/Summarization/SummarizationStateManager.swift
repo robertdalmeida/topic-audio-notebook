@@ -31,8 +31,12 @@ final class SummarizationStateManager {
     
     private let factory: SummarizationServiceFactory
     
+    var isSummarizationEnabled: Bool {
+        factory.currentProvider.isEnabled
+    }
+    
     var canSummarize: Bool {
-        !isSummarizing && (modelState == .ready || modelState == .idle)
+        isSummarizationEnabled && !isSummarizing && (modelState == .ready || modelState == .idle)
     }
     
     var statusMessage: String? {

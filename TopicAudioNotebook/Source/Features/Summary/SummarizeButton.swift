@@ -29,9 +29,11 @@ struct SummarizeButton: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            mainContent
-            statusIndicator
+        if stateManager.isSummarizationEnabled {
+            VStack(spacing: 8) {
+                mainContent
+                statusIndicator
+            }
         }
     }
     
