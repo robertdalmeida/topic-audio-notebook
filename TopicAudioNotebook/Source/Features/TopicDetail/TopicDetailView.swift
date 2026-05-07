@@ -107,8 +107,7 @@ struct TopicDetailView: View {
                     NavigationLink {
                         SummaryView(
                             topicId: viewModel.topic.id,
-                            repository: repository,
-                            onRegenerate: viewModel.generateTopicSummaryAsync
+                            repository: repository
                         )
                     } label: {
                         Text("View Full")

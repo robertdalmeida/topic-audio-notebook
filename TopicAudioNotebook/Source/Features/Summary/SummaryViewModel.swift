@@ -7,36 +7,34 @@ final class SummaryViewModel {
     
     // MARK: - State
     
-    enum ViewState: Equatable {
-        case loading
-        case ready
-        case regenerating
-        case error(String)
-    }
-    
-    private(set) var viewState: ViewState = .loading
     private let stateManager = SummarizationStateManager.shared
     var displayMode: SummaryDisplayMode = .points
     private(set) var topic: Topic?
+    private(set) var isGeneratingKeyPoints = false
+    private(set) var isGeneratingSummary = false
+    private(set) var isModelLoading = true
     
     // MARK: - Dependencies
     
     private let topicId: UUID
     private let repository: TopicRepository
     private let factory: SummarizationServiceFactory
-    private let regenerateAction: (() async -> Void)?
     private var cancellables = Set<AnyCancellable>()
     
     var hasSummary: Bool {
         topic?.consolidatedSummary != nil || topic?.consolidatedPoints != nil
     }
     
-    var canRegenerate: Bool {
-        regenerateAction != nil && viewState == .ready
+    var hasKeyPoints: Bool {
+        topic?.consolidatedPoints != nil && !(topic?.consolidatedPoints?.isEmpty ?? true)
     }
     
-    var isRegenerating: Bool {
-        viewState == .regenerating
+    var hasFullSummary: Bool {
+        topic?.consolidatedSummary != nil && !(topic?.consolidatedSummary?.isEmpty ?? true)
+    }
+    
+    var isGenerating: Bool {
+        isGeneratingKeyPoints || isGeneratingSummary
     }
     
     var shareContent: String {
@@ -63,13 +61,11 @@ final class SummaryViewModel {
     init(
         topicId: UUID,
         repository: TopicRepository,
-        factory: SummarizationServiceFactory = .shared,
-        regenerateAction: (() async -> Void)? = nil
+        factory: SummarizationServiceFactory = .shared
     ) {
         self.topicId = topicId
         self.repository = repository
         self.factory = factory
-        self.regenerateAction = regenerateAction
         self.topic = repository.topics.first { $0.id == topicId }
         
         setupBindings()
@@ -90,22 +86,21 @@ final class SummaryViewModel {
     // MARK: - Actions
     
     func onAppear() async {
-        if hasSummary {
-            viewState = .ready
-            await stateManager.preloadModelIfNeeded()
-        } else {
-            viewState = .loading
-            await stateManager.preloadModelIfNeeded()
-            viewState = .ready
-        }
+        isModelLoading = true
+        await stateManager.preloadModelIfNeeded()
+        isModelLoading = false
     }
     
-    func regenerateSummary() async {
-        guard let regenerateAction else { return }
-        
-        viewState = .regenerating
-        await regenerateAction()
-        viewState = .ready
+    func generateKeyPoints() async {
+        isGeneratingKeyPoints = true
+        await repository.generateConsolidatedKeyPoints(for: topicId)
+        isGeneratingKeyPoints = false
+    }
+    
+    func generateFullSummary() async {
+        isGeneratingSummary = true
+        await repository.generateConsolidatedSummary(for: topicId)
+        isGeneratingSummary = false
     }
     
 }

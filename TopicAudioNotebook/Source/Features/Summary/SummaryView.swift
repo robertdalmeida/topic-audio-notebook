@@ -16,11 +16,10 @@ struct SummaryView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: SummaryViewModel
     
-    init(topicId: UUID, repository: TopicRepository, onRegenerate: (() async -> Void)? = nil) {
+    init(topicId: UUID, repository: TopicRepository) {
         _viewModel = State(wrappedValue: SummaryViewModel(
             topicId: topicId,
-            repository: repository,
-            regenerateAction: onRegenerate
+            repository: repository
         ))
     }
     
@@ -69,60 +68,33 @@ private struct SummaryContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    TopicStatsHeader(topic: topic)
-                    Spacer()
-                    RegenerateActionSection(viewModel: viewModel)
-                }
+                TopicStatsHeader(topic: topic)
                 
-                if viewModel.hasSummary {
-                    DisplayModePicker(selection: $viewModel.displayMode)
-                }
+                DisplayModePicker(selection: $viewModel.displayMode)
                 
                 Divider()
                 
-                summaryBody
+                summaryContent
             }
             .padding()
         }
     }
     
     @ViewBuilder
-    private var summaryBody: some View {
-        switch viewModel.viewState {
-        case .loading, .ready, .error:
-            if viewModel.hasSummary {
-                summaryContent
-            } else {
-                NoSummaryView()
-            }
-        case .regenerating:
-            LoadingStateView(message: "Regenerating summary...", subtitle: "This may take a moment")
-        }
-    }
-    
-    @ViewBuilder
     private var summaryContent: some View {
         if viewModel.displayMode == .points {
-            KeyPointsSection(points: topic.consolidatedPoints)
+            KeyPointsSection(
+                points: topic.consolidatedPoints,
+                isGenerating: viewModel.isGeneratingKeyPoints,
+                onGenerate: { Task { await viewModel.generateKeyPoints() } }
+            )
         } else {
-            LongFormSection(summary: topic.consolidatedSummary)
+            LongFormSection(
+                summary: topic.consolidatedSummary,
+                isGenerating: viewModel.isGeneratingSummary,
+                onGenerate: { Task { await viewModel.generateFullSummary() } }
+            )
         }
-    }
-}
-
-// MARK: - Regenerate Action Section
-
-private struct RegenerateActionSection: View {
-    @Bindable var viewModel: SummaryViewModel
-    
-    var body: some View {
-        SummarizeButton(
-            action: {
-                Task { await viewModel.regenerateSummary() }
-            }
-        )
-        .controlSize(.small)
     }
 }
 
@@ -156,74 +128,56 @@ private struct DisplayModePicker: View {
     }
 }
 
-// MARK: - No Summary View
-
-private struct NoSummaryView: View {
-    var body: some View {
-        ContentUnavailableView {
-            Label("No Summary Yet", systemImage: "doc.text.magnifyingglass")
-        } description: {
-            Text("Tap the regenerate button to generate a summary from your recordings")
-        }
-        .padding(.vertical, 20)
-    }
-}
-
-// MARK: - Loading State View
-
-private struct LoadingStateView: View {
-    let message: String
-    var subtitle: String?
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
-            
-            Text(message)
-                .font(.headline)
-            
-            if let subtitle {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-    }
-}
-
 // MARK: - Key Points Section
 
 private struct KeyPointsSection: View {
     let points: [String]?
+    let isGenerating: Bool
+    let onGenerate: () -> Void
     
     var body: some View {
-        if let points, !points.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("Key Points")
-                        .font(.headline)
-                    Spacer()
-                    CopyButton(points: points)
-                }
-                .padding(.bottom, 4)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Key Points")
+                    .font(.headline)
+                Spacer()
                 
+                if isGenerating {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Generating...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        if let points, !points.isEmpty {
+                            CopyButton(points: points)
+                        }
+                        SummarizeButton(action: onGenerate)
+                            .controlSize(.small)
+                    }
+                }
+            }
+            .padding(.bottom, 4)
+            
+            if let points, !points.isEmpty {
                 ForEach(Array(points.enumerated()), id: \.offset) { _, point in
                     SummaryKeyPointRow(point: point)
                 }
-            }
-            .textSelection(.enabled)
-            .padding()
-            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
-        } else {
-            ContentUnavailableView {
-                Label("No Key Points", systemImage: "list.bullet")
-            } description: {
-                Text("Key points will appear here after consolidation")
+            } else if !isGenerating {
+                ContentUnavailableView {
+                    Label("No Key Points", systemImage: "list.bullet")
+                } description: {
+                    Text("Tap Generate to extract key points")
+                }
+                .frame(minHeight: 150)
             }
         }
+        .textSelection(.enabled)
+        .padding()
+        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -245,8 +199,16 @@ private struct SummaryKeyPointRow: View {
 }
 
 private struct CopyButton: View {
-    let points: [String]
-    
+    let text: String
+
+    init(points: [String]) {
+        text = points.map { "• \($0)" }.joined(separator: "\n")
+
+    }
+    init(text: String) {
+        self.text = text
+    }
+
     var body: some View {
         Button {
             copyToClipboard()
@@ -257,7 +219,6 @@ private struct CopyButton: View {
     }
     
     private func copyToClipboard() {
-        let text = points.map { "• \($0)" }.joined(separator: "\n")
         #if os(iOS)
         UIPasteboard.general.string = text
         #elseif os(macOS)
@@ -271,17 +232,49 @@ private struct CopyButton: View {
 
 private struct LongFormSection: View {
     let summary: String?
+    let isGenerating: Bool
+    let onGenerate: () -> Void
     
     var body: some View {
-        if let summary {
-            MarkdownTextView(text: summary)
-        } else {
-            ContentUnavailableView {
-                Label("No Summary", systemImage: "doc.richtext")
-            } description: {
-                Text("Generate a summary by tapping Regenerate")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Full Summary")
+                    .font(.headline)
+                Spacer()
+                
+                if isGenerating {
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Generating...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    HStack(spacing: 12) {
+                        if let summary, !summary.isEmpty {
+                            CopyButton(text: summary)
+                        }
+                        SummarizeButton(action: onGenerate)
+                            .controlSize(.small)
+                    }
+                }
+            }
+            .padding(.bottom, 4)
+            
+            if let summary, !summary.isEmpty {
+                MarkdownTextView(text: summary)
+            } else if !isGenerating {
+                ContentUnavailableView {
+                    Label("No Summary", systemImage: "doc.richtext")
+                } description: {
+                    Text("Tap Generate to create a summary")
+                }
+                .frame(minHeight: 150)
             }
         }
+        .padding()
+        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 

@@ -315,6 +315,44 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         isLoading = false
     }
     
+    func generateConsolidatedKeyPoints(for topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        let allContent = topics[topicIndex].allContent
+        guard !allContent.isEmpty else {
+            errorMessage = "No content available to generate key points"
+            return
+        }
+        
+        do {
+            let points = try await summarizationService.generateKeyPoints(allContent)
+            topics[topicIndex].consolidatedPoints = points
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            errorMessage = "Key points generation failed: \(error.localizedDescription)"
+        }
+    }
+    
+    func generateConsolidatedSummary(for topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }) else { return }
+        
+        let allContent = topics[topicIndex].allContent
+        guard !allContent.isEmpty else {
+            errorMessage = "No content available to generate summary"
+            return
+        }
+        
+        do {
+            let summary = try await summarizationService.generateFullSummary(allContent)
+            topics[topicIndex].consolidatedSummary = summary
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            errorMessage = "Summary generation failed: \(error.localizedDescription)"
+        }
+    }
+    
     // MARK: - Persistence
     
     private func saveTopics() {
