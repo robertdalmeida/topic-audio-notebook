@@ -275,7 +275,18 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
             
             await consolidateSummary(for: topicId)
         } catch {
-            log.error("[TopicRepository] Transcription failed: \(error.localizedDescription)", category: .repository)
+            let fileExists = FileManager.default.fileExists(atPath: fileURL.path)
+            let fileSize = (try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int64) ?? 0
+            log.error("""
+                [TopicRepository] Transcription failed:
+                  Error: \(error.localizedDescription)
+                  Full error: \(String(describing: error))
+                  File URL: \(fileURL.absoluteString)
+                  File path: \(fileURL.path)
+                  File exists: \(fileExists)
+                  File size: \(fileSize) bytes
+                  Provider: \(transcriptionFactory.currentProvider)
+                """, category: .repository)
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .failed
             errorMessage = "Transcription failed: \(error.localizedDescription)"
             saveTopics()

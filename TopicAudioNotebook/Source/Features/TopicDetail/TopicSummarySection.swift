@@ -73,9 +73,12 @@ private struct GenerateSummaryView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            SummarizeButton(
-                action: onGenerate
-            )
+            HStack {
+                Spacer()
+                SummarizeButton(
+                    action: onGenerate
+                )
+            }
         }
         .padding(.vertical, 8)
     }

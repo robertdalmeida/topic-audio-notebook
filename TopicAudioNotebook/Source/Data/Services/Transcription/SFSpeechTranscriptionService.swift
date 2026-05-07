@@ -5,11 +5,19 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
     let providerType: TranscriptionProvider = .sfSpeechRecognizer
     
     func transcribe(audioURL: URL) async throws -> String {
-        log.info("[SFSpeechTranscriptionService] Starting transcription for \(audioURL.lastPathComponent)", category: .transcription)
+        let fileExists = FileManager.default.fileExists(atPath: audioURL.path)
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: audioURL.path)[.size] as? Int64) ?? 0
+        log.info("""
+            🎤 [SFSpeech] Starting transcription:
+              File: \(audioURL.lastPathComponent)
+              Path: \(audioURL.path)
+              Exists: \(fileExists)
+              Size: \(fileSize) bytes
+            """, category: .transcription)
 
         let authorized = await requestAuthorization()
         guard authorized else {
-            log.error("[SFSpeechTranscriptionService] Speech recognition authorization denied", category: .transcription)
+            log.error("🎤 [SFSpeech] Authorization denied", category: .transcription)
             throw TranscriptionServiceError.notAuthorized
         }
         
@@ -27,10 +35,11 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
     private func performTranscription(audioURL: URL) async throws -> String {
         guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
               recognizer.isAvailable else {
-            log.error("[SFSpeechTranscriptionService] SFSpeechRecognizer unavailable", category: .transcription)
+            log.error("🎤 [SFSpeech] Recognizer unavailable", category: .transcription)
             throw TranscriptionServiceError.recognizerUnavailable
         }
         
+        log.info("🎤 [SFSpeech] Creating recognition request for: \(audioURL.path)", category: .transcription)
         let request = SFSpeechURLRecognitionRequest(url: audioURL)
         request.shouldReportPartialResults = false
         request.addsPunctuation = true
@@ -38,7 +47,15 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
         return try await withCheckedThrowingContinuation { continuation in
             recognizer.recognitionTask(with: request) { result, error in
                 if let error = error {
-                    log.error("[SFSpeechTranscriptionService] Recognition failed: \(error.localizedDescription)", category: .transcription)
+                    let nsError = error as NSError
+                    log.error("""
+                        🎤 [SFSpeech] Recognition failed:
+                          Error: \(error.localizedDescription)
+                          Domain: \(nsError.domain)
+                          Code: \(nsError.code)
+                          UserInfo: \(nsError.userInfo)
+                          URL: \(audioURL.path)
+                        """, category: .transcription)
                     continuation.resume(throwing: TranscriptionServiceError.recognitionFailed(error.localizedDescription))
                     return
                 }
@@ -46,7 +63,7 @@ actor SFSpeechTranscriptionService: TranscriptionServiceProtocol {
                 guard let result = result, result.isFinal else { return }
                 
                 let transcript = result.bestTranscription.formattedString
-                log.info("[SFSpeechTranscriptionService] Transcription complete (\(transcript.count) chars)", category: .transcription)
+                log.info("🎤 [SFSpeech] Transcription complete (\(transcript.count) chars)", category: .transcription)
                 continuation.resume(returning: transcript)
             }
         }

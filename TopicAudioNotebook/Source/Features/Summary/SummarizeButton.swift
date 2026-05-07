@@ -15,7 +15,7 @@ struct SummarizeButton: View {
     }
     
     init(
-        title: String = "Generate",
+        title: String = "",
         icon: String = "sparkles",
         isEnabled: Bool = true,
         style: Style = .capsule,
