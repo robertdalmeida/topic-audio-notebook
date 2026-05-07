@@ -24,6 +24,7 @@ enum PromptTemplates {
         - Keep each point brief and factual
         - Do not add context or interpretation
         - Use the speaker's own words when possible
+        - Format as bullet points: • [Point]
         """
     
     static let summaryRules = """
@@ -34,30 +35,6 @@ enum PromptTemplates {
         - Be concise and to the point
         """
     
-    // MARK: - Output Formats
-    
-    static let bulletPointFormat = """
-        Format as bullet points:
-        • [Point]
-        """
-    
-    static let jsonKeyPointsFormat = """
-        Format your response as JSON:
-        {
-            "points": ["Point 1", "Point 2"]
-        }
-        
-        Only output valid JSON.
-        """
-    
-    static let jsonSummaryFormat = """
-        Format your response as JSON:
-        {
-            "summary": "Your summary here"
-        }
-        
-        Only output valid JSON.
-        """
 }
 
 // MARK: - MLX Llama Prompt Builder
@@ -80,9 +57,7 @@ struct LlamaPromptBuilder: PromptBuilder {
         
         Rules:
         \(PromptTemplates.keyPointsRules)
-        
-        \(PromptTemplates.bulletPointFormat)
-        
+                
         Transcript:
         \(String(transcript.prefix(maxKeyPointsLength)))<|eot_id|><|start_header_id|>assistant<|end_header_id|>
         """
@@ -121,8 +96,6 @@ struct PlainTextPromptBuilder: PromptBuilder {
         Rules:
         \(PromptTemplates.keyPointsRules)
         
-        \(PromptTemplates.bulletPointFormat)
-        
         Transcript:
         \(String(transcript.prefix(maxLength)))
         """
@@ -154,7 +127,12 @@ struct OpenAIPromptBuilder: PromptBuilder {
         Rules:
         \(PromptTemplates.keyPointsRules)
         
-        \(PromptTemplates.jsonKeyPointsFormat)
+        Format your response as JSON:
+        {
+            "points": ["Point 1", "Point 2"]
+        }
+        
+        Only output valid JSON.
         """
     }
     
@@ -165,7 +143,12 @@ struct OpenAIPromptBuilder: PromptBuilder {
         Rules:
         \(PromptTemplates.summaryRules)
         
-        \(PromptTemplates.jsonSummaryFormat)
+        Format your response as JSON:
+        {
+            "summary": "Your summary here"
+        }
+        
+        Only output valid JSON.
         """
     }
 }
