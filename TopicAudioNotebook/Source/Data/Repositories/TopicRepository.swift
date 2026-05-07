@@ -244,20 +244,33 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     
     // MARK: - Recording Summary
     
-    func generateRecordingSummary(recordingId: UUID, in topicId: UUID) async {
+    func generateRecordingKeyPoints(recordingId: UUID, in topicId: UUID) async {
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
               let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }),
               let transcript = topics[topicIndex].recordings[recordingIndex].transcript else {
             return
         }
         
-        topics[topicIndex].recordings[recordingIndex].summaryStatus = .inProgress
-        saveTopics()
+        do {
+            let points = try await summarizationService.generateKeyPoints([transcript])
+            topics[topicIndex].recordings[recordingIndex].summaryPoints = points
+            topics[topicIndex].updatedAt = Date()
+            saveTopics()
+        } catch {
+            errorMessage = "Key points generation failed: \(error.localizedDescription)"
+        }
+    }
+    
+    func generateRecordingFullSummary(recordingId: UUID, in topicId: UUID) async {
+        guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
+              let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }),
+              let transcript = topics[topicIndex].recordings[recordingIndex].transcript else {
+            return
+        }
         
         do {
-            let result = try await summarizationService.summarizeRecording(transcript)
-            topics[topicIndex].recordings[recordingIndex].summary = result.summary
-            topics[topicIndex].recordings[recordingIndex].summaryPoints = result.points
+            let summary = try await summarizationService.generateFullSummary([transcript])
+            topics[topicIndex].recordings[recordingIndex].summary = summary
             topics[topicIndex].recordings[recordingIndex].summaryStatus = .completed
             topics[topicIndex].updatedAt = Date()
             saveTopics()
@@ -286,9 +299,13 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
         isLoading = true
         
         do {
-            let result = try await summarizationService.consolidateTranscripts(allContent)
-            topics[topicIndex].consolidatedSummary = result.summary
-            topics[topicIndex].consolidatedPoints = result.points
+            async let keyPoints = summarizationService.generateKeyPoints(allContent)
+            async let fullSummary = summarizationService.generateFullSummary(allContent)
+            
+            let (points, summary) = try await (keyPoints, fullSummary)
+            
+            topics[topicIndex].consolidatedSummary = summary
+            topics[topicIndex].consolidatedPoints = points
             topics[topicIndex].updatedAt = Date()
             saveTopics()
         } catch {

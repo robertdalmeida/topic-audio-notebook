@@ -4,19 +4,7 @@ import NaturalLanguage
 actor OnDeviceSummarizationService: SummarizationService {
     nonisolated let providerType: SummarizationProvider = .onDevice
     
-    func summarizeRecording(_ transcript: String) async throws -> SummaryResult {
-        guard transcript.count >= 20 else {
-            throw SummarizationError.textTooShort
-        }
-        
-        let sentences = extractSentences(from: transcript)
-        let keyPoints = extractKeyPoints(from: sentences)
-        let summary = generateSummary(from: sentences)
-        
-        return SummaryResult(summary: summary, points: keyPoints)
-    }
-    
-    func consolidateTranscripts(_ transcripts: [String]) async throws -> SummaryResult {
+    func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
         let combinedText = transcripts.joined(separator: " ")
         
         guard combinedText.count >= 20 else {
@@ -24,10 +12,18 @@ actor OnDeviceSummarizationService: SummarizationService {
         }
         
         let sentences = extractSentences(from: combinedText)
-        let keyPoints = extractKeyPoints(from: sentences, maxPoints: 10)
-        let summary = generateConsolidatedSummary(from: transcripts, sentences: sentences)
+        return extractKeyPoints(from: sentences, maxPoints: 10)
+    }
+    
+    func generateFullSummary(_ transcripts: [String]) async throws -> String {
+        let combinedText = transcripts.joined(separator: " ")
         
-        return SummaryResult(summary: summary, points: keyPoints)
+        guard combinedText.count >= 20 else {
+            throw SummarizationError.textTooShort
+        }
+        
+        let sentences = extractSentences(from: combinedText)
+        return generateConsolidatedSummary(from: transcripts, sentences: sentences)
     }
     
     // MARK: - NLP Processing

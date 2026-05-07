@@ -17,7 +17,6 @@ struct TopicSummarySection: View {
         Group {
             if hasSummary {
                 SummaryContentView(
-                    summary: summary ?? "",
                     points: points,
                     isGenerating: isGenerating
                 )
@@ -33,9 +32,12 @@ struct TopicSummarySection: View {
 // MARK: - Summary Content View
 
 private struct SummaryContentView: View {
-    let summary: String
     let points: [String]?
     let isGenerating: Bool
+
+    let maxPointsToShow = 10
+
+    @State private var isExpanded = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -56,15 +58,22 @@ private struct SummaryContentView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                     
-                    KeyPointsView(points: points, maxPoints: 5)
+                    KeyPointsView(points: points, maxPoints: isExpanded ? nil : maxPointsToShow)
                 }
             }
             
-            if !summary.isEmpty {
-                Text(summary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(4)
+            VStack(alignment: .leading, spacing: 4) {
+                if (points?.count ?? 0) > maxPointsToShow {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isExpanded.toggle()
+                        }
+                    } label: {
+                        Text(isExpanded ? "Show Less" : "Show More")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                }
             }
         }
         .padding(.vertical, 4)
@@ -80,8 +89,6 @@ private struct GenerateSummaryView: View {
     var body: some View {
         VStack(spacing: 12) {
             SummarizeButton(
-                title: "Generate Topic Summary",
-                style: .rounded,
                 action: onGenerate
             )
         }

@@ -63,7 +63,6 @@ private struct SummaryHeader: View {
                 }
             } else {
                 SummarizeButton(
-                    title: summaryStatus == .completed ? "Regenerate" : "Generate",
                     isEnabled: hasTranscript,
                     action: onGenerate
                 )

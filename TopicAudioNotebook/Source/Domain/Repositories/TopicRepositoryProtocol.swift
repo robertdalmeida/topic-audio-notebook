@@ -27,7 +27,8 @@ protocol TopicRepositoryProtocol: AnyObject {
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async
     func retryTranscription(for recording: Recording, in topicId: UUID)
     
-    func generateRecordingSummary(recordingId: UUID, in topicId: UUID) async
+    func generateRecordingKeyPoints(recordingId: UUID, in topicId: UUID) async
+    func generateRecordingFullSummary(recordingId: UUID, in topicId: UUID) async
     func consolidateSummary(for topicId: UUID) async
     
     func getRecordingsDirectory() -> URL

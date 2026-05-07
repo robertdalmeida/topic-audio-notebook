@@ -1,10 +1,25 @@
 import Foundation
 import Combine
 
+enum RecordingTab: Int, CaseIterable {
+    case transcript = 0
+    case keyPoints = 1
+    case summary = 2
+    
+    var title: String {
+        switch self {
+        case .transcript: return "Transcript"
+        case .keyPoints: return "Key Points"
+        case .summary: return "Summary"
+        }
+    }
+}
+
 @MainActor
 final class RecordingDetailViewModel: ObservableObject {
     @Published private(set) var recording: Recording
-    @Published var selectedTab = 0
+    @Published var selectedTab: RecordingTab = .transcript
+    @Published private(set) var isGeneratingKeyPoints = false
     @Published private(set) var isGeneratingSummary = false
     
     private let recordingId: UUID
@@ -14,6 +29,14 @@ final class RecordingDetailViewModel: ObservableObject {
     
     var hasTranscript: Bool {
         recording.transcript != nil
+    }
+    
+    var hasKeyPoints: Bool {
+        recording.summaryPoints != nil && !recording.summaryPoints!.isEmpty
+    }
+    
+    var hasSummary: Bool {
+        recording.summary != nil && !recording.summary!.isEmpty
     }
     
     init(
@@ -55,10 +78,18 @@ final class RecordingDetailViewModel: ObservableObject {
     
     // MARK: - Actions
     
+    func generateKeyPoints() {
+        isGeneratingKeyPoints = true
+        Task {
+            await repository.generateRecordingKeyPoints(recordingId: recordingId, in: topicId)
+            isGeneratingKeyPoints = false
+        }
+    }
+    
     func generateSummary() {
         isGeneratingSummary = true
         Task {
-            await repository.generateRecordingSummary(recordingId: recordingId, in: topicId)
+            await repository.generateRecordingFullSummary(recordingId: recordingId, in: topicId)
             isGeneratingSummary = false
         }
     }

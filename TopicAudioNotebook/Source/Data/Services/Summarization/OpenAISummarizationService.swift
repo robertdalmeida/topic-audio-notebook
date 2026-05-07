@@ -7,35 +7,7 @@ actor OpenAISummarizationService: SummarizationService {
         UserDefaults.standard.string(forKey: "OpenAI_API_Key")
     }
     
-    func summarizeRecording(_ transcript: String) async throws -> SummaryResult {
-        guard let apiKey = apiKey, !apiKey.isEmpty else {
-            throw SummarizationError.noAPIKey
-        }
-        
-        let systemPrompt = """
-        You are an expert at summarizing audio transcripts. Analyze the transcript and provide:
-        1. A concise summary paragraph (2-4 sentences)
-        2. A list of 3-7 key points as bullet points
-        
-        Format your response as JSON with this structure:
-        {
-            "summary": "Your summary paragraph here",
-            "points": ["Point 1", "Point 2", "Point 3"]
-        }
-        
-        Only output valid JSON, no other text.
-        """
-        
-        let response = try await callOpenAIChat(
-            systemPrompt: systemPrompt,
-            userMessage: "Summarize this transcript:\n\n\(transcript)",
-            apiKey: apiKey
-        )
-        
-        return parseJSONResponse(response)
-    }
-    
-    func consolidateTranscripts(_ transcripts: [String]) async throws -> SummaryResult {
+    func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             throw SummarizationError.noAPIKey
         }
@@ -45,14 +17,10 @@ actor OpenAISummarizationService: SummarizationService {
         }.joined(separator: "\n\n---\n\n")
         
         let systemPrompt = """
-        You are an expert at synthesizing multiple audio transcripts into a cohesive summary.
-        Analyze all transcripts and provide:
-        1. A comprehensive summary paragraph combining all key information
-        2. A list of 5-10 key points extracted from all recordings, removing redundancies
+        Analyze all transcripts and extract the key points, removing redundancies.
         
         Format your response as JSON with this structure:
         {
-            "summary": "Your comprehensive summary here",
             "points": ["Key point 1", "Key point 2", "Key point 3"]
         }
         
@@ -61,11 +29,41 @@ actor OpenAISummarizationService: SummarizationService {
         
         let response = try await callOpenAIChat(
             systemPrompt: systemPrompt,
-            userMessage: "Consolidate these transcripts:\n\n\(combinedTranscripts)",
+            userMessage: "Extract key points from these transcripts:\n\n\(combinedTranscripts)",
             apiKey: apiKey
         )
         
-        return parseJSONResponse(response)
+        return parseKeyPointsResponse(response)
+    }
+    
+    func generateFullSummary(_ transcripts: [String]) async throws -> String {
+        guard let apiKey = apiKey, !apiKey.isEmpty else {
+            throw SummarizationError.noAPIKey
+        }
+        
+        let combinedTranscripts = transcripts.enumerated().map { index, transcript in
+            "Recording \(index + 1):\n\(transcript)"
+        }.joined(separator: "\n\n---\n\n")
+        
+        let systemPrompt = """
+        Create a well-structured, detailed summary that captures the main themes, important details, and conclusions.
+        Write in clear paragraphs.
+        
+        Format your response as JSON with this structure:
+        {
+            "summary": "Your comprehensive summary here"
+        }
+        
+        Only output valid JSON, no other text.
+        """
+        
+        let response = try await callOpenAIChat(
+            systemPrompt: systemPrompt,
+            userMessage: "Create a comprehensive summary of these transcripts:\n\n\(combinedTranscripts)",
+            apiKey: apiKey
+        )
+        
+        return parseSummaryResponse(response)
     }
     
     // MARK: - Private Methods
@@ -115,15 +113,24 @@ actor OpenAISummarizationService: SummarizationService {
         return content
     }
     
-    private func parseJSONResponse(_ response: String) -> SummaryResult {
+    private func parseKeyPointsResponse(_ response: String) -> [String] {
         guard let data = response.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let summary = json["summary"] as? String,
               let points = json["points"] as? [String] else {
-            let lines = response.components(separatedBy: "\n").filter { !$0.isEmpty }
-            return SummaryResult(summary: response, points: Array(lines.prefix(5)))
+            let lines = response.components(separatedBy: "\n")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            return Array(lines.prefix(10))
         }
-        
-        return SummaryResult(summary: summary, points: points)
+        return points
+    }
+    
+    private func parseSummaryResponse(_ response: String) -> String {
+        guard let data = response.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let summary = json["summary"] as? String else {
+            return response.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return summary
     }
 }

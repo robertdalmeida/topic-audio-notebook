@@ -91,8 +91,8 @@ enum SummarizationError: LocalizedError {
 }
 
 protocol SummarizationService: Sendable {
-    func summarizeRecording(_ transcript: String) async throws -> SummaryResult
-    func consolidateTranscripts(_ transcripts: [String]) async throws -> SummaryResult
+    func generateKeyPoints(_ transcripts: [String]) async throws -> [String]
+    func generateFullSummary(_ transcripts: [String]) async throws -> String
     var providerType: SummarizationProvider { get }
 }
 

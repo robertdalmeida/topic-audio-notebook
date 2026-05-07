@@ -21,16 +21,16 @@ final class StateManagedSummarizationService: @unchecked Sendable {
     }
     
     @MainActor
-    func summarizeRecording(_ transcript: String) async throws -> SummaryResult {
+    func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
         try await stateManager.performSummarization {
-            try await self.factory.currentService.summarizeRecording(transcript)
+            try await self.factory.currentService.generateKeyPoints(transcripts)
         }
     }
     
     @MainActor
-    func consolidateTranscripts(_ transcripts: [String]) async throws -> SummaryResult {
+    func generateFullSummary(_ transcripts: [String]) async throws -> String {
         try await stateManager.performSummarization {
-            try await self.factory.currentService.consolidateTranscripts(transcripts)
+            try await self.factory.currentService.generateFullSummary(transcripts)
         }
     }
     

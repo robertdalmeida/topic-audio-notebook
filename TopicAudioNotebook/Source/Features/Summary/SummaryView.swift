@@ -118,8 +118,6 @@ private struct RegenerateActionSection: View {
     
     var body: some View {
         SummarizeButton(
-            title: "Regenerate",
-            icon: "arrow.clockwise",
             action: {
                 Task { await viewModel.regenerateSummary() }
             }

@@ -60,27 +60,7 @@ actor MLXSummarizationService: LoadableSummarizationService {
     }
     #endif
     
-    func summarizeRecording(_ transcript: String) async throws -> SummaryResult {
-        guard transcript.count >= 20 else {
-            throw SummarizationError.textTooShort
-        }
-        
-        #if canImport(MLXLLM)
-        try await loadModelIfNeeded()
-        
-        guard let container = modelContainer else {
-            throw SummarizationError.processingFailed("Failed to load MLX model")
-        }
-        
-        let prompt = buildRecordingPrompt(transcript: transcript)
-        let response = try await generate(prompt: prompt, container: container)
-        return parseResponse(response)
-        #else
-        throw SummarizationError.processingFailed("MLX framework not available")
-        #endif
-    }
-    
-    func consolidateTranscripts(_ transcripts: [String]) async throws -> SummaryResult {
+    func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
@@ -94,9 +74,31 @@ actor MLXSummarizationService: LoadableSummarizationService {
             throw SummarizationError.processingFailed("Failed to load MLX model")
         }
         
-        let prompt = buildConsolidationPrompt(transcripts: transcripts, combinedText: combinedText)
+        let prompt = buildKeyPointsPrompt(combinedText: combinedText, count: transcripts.count)
         let response = try await generate(prompt: prompt, container: container)
-        return parseResponse(response)
+        return parseKeyPoints(response)
+        #else
+        throw SummarizationError.processingFailed("MLX framework not available")
+        #endif
+    }
+    
+    func generateFullSummary(_ transcripts: [String]) async throws -> String {
+        let combinedText = transcripts.joined(separator: "\n\n---\n\n")
+        
+        guard combinedText.count >= 20 else {
+            throw SummarizationError.textTooShort
+        }
+        
+        #if canImport(MLXLLM)
+        try await loadModelIfNeeded()
+        
+        guard let container = modelContainer else {
+            throw SummarizationError.processingFailed("Failed to load MLX model")
+        }
+        
+        let prompt = buildFullSummaryPrompt(combinedText: combinedText, count: transcripts.count)
+        let response = try await generate(prompt: prompt, container: container)
+        return response.trimmingCharacters(in: .whitespacesAndNewlines)
         #else
         throw SummarizationError.processingFailed("MLX framework not available")
         #endif
@@ -125,41 +127,11 @@ actor MLXSummarizationService: LoadableSummarizationService {
     }
     #endif
     
-    private func buildRecordingPrompt(transcript: String) -> String {
+    private func buildKeyPointsPrompt(combinedText: String, count: Int) -> String {
         """
-        You are a helpful assistant that summarizes audio recording transcripts.
+        Extract key points from the following \(count) transcripts. Focus on the most important information, insights, and actionable items.
         
-        Summarize the following transcript. Provide:
-        1. A concise summary paragraph (2-3 sentences)
-        2. 3-5 key points as bullet points
-        
-        Format your response exactly as:
-        SUMMARY:
-        [Your summary here]
-        
-        KEY POINTS:
-        • [Point 1]
-        • [Point 2]
-        • [Point 3]
-        
-        Transcript:
-        \(transcript.prefix(4000))
-        """
-    }
-    
-    private func buildConsolidationPrompt(transcripts: [String], combinedText: String) -> String {
-        """
-        You are a helpful assistant that consolidates multiple audio recording transcripts.
-        
-        Consolidate and summarize the following \(transcripts.count) transcripts into a unified summary. Provide:
-        1. A comprehensive summary that captures the main themes
-        2. 5-10 key points covering the most important information
-        
-        Format your response exactly as:
-        SUMMARY:
-        [Your consolidated summary here]
-        
-        KEY POINTS:
+        Format your response as bullet points only:
         • [Point 1]
         • [Point 2]
         • [Point 3]
@@ -170,62 +142,34 @@ actor MLXSummarizationService: LoadableSummarizationService {
         """
     }
     
-    private func parseResponse(_ response: String) -> SummaryResult {
-        var summary = ""
-        var points: [String] = []
+    private func buildFullSummaryPrompt(combinedText: String, count: Int) -> String {
+        """
+        Create a comprehensive, well-structured summary of the following \(count) transcripts. Capture important details, and conclusions. Write in clear paragraphs and to the point.
         
+        Transcripts:
+        \(combinedText.prefix(6000))
+        """
+    }
+    
+    private func parseKeyPoints(_ response: String) -> [String] {
+        var points: [String] = []
         let lines = response.components(separatedBy: .newlines)
-        var inSummarySection = false
-        var inPointsSection = false
-        var summaryLines: [String] = []
         
         for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            var pointText = line.trimmingCharacters(in: .whitespaces)
             
-            if trimmed.uppercased().hasPrefix("SUMMARY:") {
-                inSummarySection = true
-                inPointsSection = false
-                let afterPrefix = trimmed.dropFirst("SUMMARY:".count).trimmingCharacters(in: .whitespaces)
-                if !afterPrefix.isEmpty {
-                    summaryLines.append(afterPrefix)
-                }
-                continue
+            if pointText.hasPrefix("•") || pointText.hasPrefix("-") || pointText.hasPrefix("*") {
+                pointText = String(pointText.dropFirst()).trimmingCharacters(in: .whitespaces)
             }
-            
-            if trimmed.uppercased().hasPrefix("KEY POINTS:") || trimmed.uppercased().hasPrefix("KEYPOINTS:") {
-                inSummarySection = false
-                inPointsSection = true
-                continue
+            if pointText.first?.isNumber == true, let dotIndex = pointText.firstIndex(of: ".") {
+                pointText = String(pointText[pointText.index(after: dotIndex)...]).trimmingCharacters(in: .whitespaces)
             }
-            
-            if inSummarySection && !trimmed.isEmpty {
-                summaryLines.append(trimmed)
-            }
-            
-            if inPointsSection {
-                var pointText = trimmed
-                if pointText.hasPrefix("•") || pointText.hasPrefix("-") || pointText.hasPrefix("*") {
-                    pointText = String(pointText.dropFirst()).trimmingCharacters(in: .whitespaces)
-                }
-                if pointText.first?.isNumber == true, let dotIndex = pointText.firstIndex(of: ".") {
-                    pointText = String(pointText[pointText.index(after: dotIndex)...]).trimmingCharacters(in: .whitespaces)
-                }
-                if !pointText.isEmpty {
-                    points.append(pointText)
-                }
+            if !pointText.isEmpty {
+                points.append(pointText)
             }
         }
         
-        summary = summaryLines.joined(separator: " ")
-        
-        if summary.isEmpty {
-            summary = response.prefix(500).trimmingCharacters(in: .whitespacesAndNewlines)
-            if response.count > 500 {
-                summary += "..."
-            }
-        }
-        
-        return SummaryResult(summary: summary, points: points)
+        return points
     }
 }
 
