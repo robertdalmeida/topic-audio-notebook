@@ -14,7 +14,9 @@ struct RecordingDetailView: View {
                 case .transcript:
                     TranscriptSection(
                         transcript: viewModel.recording.transcript,
-                        status: viewModel.recording.transcriptionStatus
+                        status: viewModel.recording.transcriptionStatus,
+                        isTranscribing: viewModel.isTranscribing,
+                        onRetranscribe: viewModel.retranscribe
                     )
                 case .keyPoints:
                     KeyPointsTabSection(

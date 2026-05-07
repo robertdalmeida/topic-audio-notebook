@@ -10,9 +10,11 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var isSwitchingStorage = false
     @Published var showingStorageConfirmation = false
     @Published var selectedSummarizationProvider: SummarizationProvider = .onDevice
+    @Published var selectedTranscriptionProvider: TranscriptionProvider = .sfSpeechRecognizer
     
     private let repository: TopicRepository
     private let summarizationFactory: SummarizationServiceFactory
+    private let transcriptionFactory: TranscriptionServiceFactory
     private var cancellables = Set<AnyCancellable>()
     
     var currentStorageType: StorageType {
@@ -25,16 +27,19 @@ final class SettingsViewModel: ObservableObject {
     
     init(
         repository: TopicRepository,
-        summarizationFactory: SummarizationServiceFactory = .shared
+        summarizationFactory: SummarizationServiceFactory = .shared,
+        transcriptionFactory: TranscriptionServiceFactory = .shared
     ) {
         self.repository = repository
         self.summarizationFactory = summarizationFactory
+        self.transcriptionFactory = transcriptionFactory
         setupInitialState()
     }
     
     private func setupInitialState() {
         selectedStorageType = repository.currentStorageType
         selectedSummarizationProvider = summarizationFactory.currentProvider
+        selectedTranscriptionProvider = transcriptionFactory.currentProvider
         checkAPIKey()
     }
     
@@ -66,6 +71,12 @@ final class SettingsViewModel: ObservableObject {
     
     func onSummarizationProviderChanged(to newValue: SummarizationProvider) {
         summarizationFactory.setProvider(newValue)
+    }
+    
+    // MARK: - Transcription Actions
+    
+    func onTranscriptionProviderChanged(to newValue: TranscriptionProvider) {
+        transcriptionFactory.setProvider(newValue)
     }
     
     // MARK: - API Key Actions

@@ -26,9 +26,12 @@ actor FoundationModelsSummarizationService: SummarizationService {
     #endif
     
     func generateKeyPoints(_ transcripts: [String]) async throws -> [String] {
+        log.info("🧠 [FoundationModels] Generating key points from \(transcripts.count) transcript(s)", category: .summarization)
+        
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
+            log.warning("🧠 [FoundationModels] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -38,16 +41,21 @@ actor FoundationModelsSummarizationService: SummarizationService {
         let prompt = SummarizationPrompts.keyPointsUserPrompt(transcript: combinedText)
         
         let response = try await session.respond(to: prompt)
-        return parseKeyPoints(response.content)
+        let keyPoints = parseKeyPoints(response.content)
+        log.info("🧠 [FoundationModels] Generated \(keyPoints.count) key points", category: .summarization)
+        return keyPoints
         #else
         throw SummarizationError.processingFailed("Foundation Models not available")
         #endif
     }
     
     func generateFullSummary(_ transcripts: [String]) async throws -> String {
+        log.info("🧠 [FoundationModels] Generating full summary from \(transcripts.count) transcript(s)", category: .summarization)
+        
         let combinedText = transcripts.joined(separator: "\n\n---\n\n")
         
         guard combinedText.count >= 20 else {
+            log.warning("🧠 [FoundationModels] Text too short", category: .summarization)
             throw SummarizationError.textTooShort
         }
         
@@ -57,7 +65,9 @@ actor FoundationModelsSummarizationService: SummarizationService {
         let prompt = SummarizationPrompts.summaryUserPrompt(transcript: combinedText)
         
         let response = try await session.respond(to: prompt)
-        return response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        let summary = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        log.info("🧠 [FoundationModels] Summary generated, length: \(summary.count) chars", category: .summarization)
+        return summary
         #else
         throw SummarizationError.processingFailed("Foundation Models not available")
         #endif

@@ -47,15 +47,17 @@ class AudioRecorder: NSObject, ObservableObject {
             return nil
         }
         
-        let fileName = "recording_\(Date().timeIntervalSince1970).m4a"
+        let fileName = "recording_\(Date().timeIntervalSince1970).wav"
         let fileURL = directory.appendingPathComponent(fileName)
         currentFileURL = fileURL
         
         let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
+            AVFormatIDKey: Int(kAudioFormatLinearPCM),
+            AVSampleRateKey: 16000,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false
         ]
         
         do {

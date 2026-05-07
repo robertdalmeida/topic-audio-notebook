@@ -5,7 +5,7 @@ struct RecordingSessionView: View {
     @EnvironmentObject var repository: TopicRepository
     @Environment(\.dismiss) private var dismiss
     @StateObject private var recorder = AudioRecorder()
-    @StateObject private var liveTranscriber = LiveTranscriber()
+    @State private var liveTranscriber: (any LiveTranscriptionServiceProtocol)?
     
     let topicId: UUID
     let topicName: String
@@ -125,16 +125,16 @@ struct RecordingSessionView: View {
                 
                 Spacer()
                 
-                if liveTranscriber.isTranscribing {
+                if liveTranscriber?.isTranscribing == true {
                     ProgressView()
                         .scaleEffect(0.7)
                 }
             }
             
             ScrollView {
-                Text(liveTranscriber.transcript.isEmpty ? "Start recording to see live transcription..." : liveTranscriber.transcript)
+                Text((liveTranscriber?.transcript.isEmpty ?? true) ? "Start recording to see live transcription..." : (liveTranscriber?.transcript ?? ""))
                     .font(.body)
-                    .foregroundStyle(liveTranscriber.transcript.isEmpty ? .tertiary : .primary)
+                    .foregroundStyle((liveTranscriber?.transcript.isEmpty ?? true) ? .tertiary : .primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(height: 100)
@@ -280,12 +280,13 @@ struct RecordingSessionView: View {
         Task {
             let directory = repository.getRecordingsDirectory()
             currentFileURL = await recorder.startRecording(to: directory)
-            await liveTranscriber.startTranscribing()
+            liveTranscriber = TranscriptionServiceFactory.shared.createLiveTranscriber()
+            await liveTranscriber?.startTranscribing()
         }
     }
     
     private func finishRecording() {
-        liveTranscriber.stopTranscribing()
+        liveTranscriber?.stopTranscribing()
         guard let result = recorder.stopRecording() else { return }
         currentFileURL = result.0
         saveRecording()
@@ -299,7 +300,7 @@ struct RecordingSessionView: View {
         formatter.dateFormat = "MMM d, h:mm a"
         let title = "\(topicName) - \(formatter.string(from: Date()))"
         let duration = recorder.recordingTime
-        let liveTranscript = liveTranscriber.transcript
+        let liveTranscript = liveTranscriber?.transcript ?? ""
         
         repository.addRecording(to: topicId, title: title, fileURL: url, duration: duration)
         

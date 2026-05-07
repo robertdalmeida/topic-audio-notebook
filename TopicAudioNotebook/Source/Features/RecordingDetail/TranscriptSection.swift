@@ -8,10 +8,17 @@ import AppKit
 struct TranscriptSection: View {
     let transcript: String?
     let status: TranscriptionStatus
+    let isTranscribing: Bool
+    let onRetranscribe: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TranscriptHeader(status: status, transcript: transcript)
+            TranscriptHeader(
+                status: status,
+                transcript: transcript,
+                isTranscribing: isTranscribing,
+                onRetranscribe: onRetranscribe
+            )
             
             if let transcript = transcript, !transcript.isEmpty {
                 TranscriptContent(transcript: transcript)
@@ -28,6 +35,8 @@ struct TranscriptSection: View {
 private struct TranscriptHeader: View {
     let status: TranscriptionStatus
     let transcript: String?
+    let isTranscribing: Bool
+    let onRetranscribe: () -> Void
     
     var body: some View {
         HStack {
@@ -36,14 +45,35 @@ private struct TranscriptHeader: View {
             
             Spacer()
             
-            if let transcript = transcript, !transcript.isEmpty {
-                Button {
-                    copyToClipboard(transcript)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.subheadline)
+            if isTranscribing {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Transcribing...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-            }            
+            } else {
+                HStack(spacing: 12) {
+                    if let transcript = transcript, !transcript.isEmpty {
+                        Button {
+                            copyToClipboard(transcript)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .font(.subheadline)
+                        }
+                    }
+                    
+                    Button {
+                        onRetranscribe()
+                    } label: {
+                        Label("Re-transcribe", systemImage: "arrow.clockwise")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
         }
     }
 
@@ -100,7 +130,9 @@ private struct TranscriptUnavailableView: View {
     ScrollView {
         TranscriptSection(
             transcript: "This is a sample transcript of the recording. It contains the spoken words that were captured during the audio recording session.",
-            status: .completed
+            status: .completed,
+            isTranscribing: false,
+            onRetranscribe: {}
         )
     }
 }
@@ -109,7 +141,20 @@ private struct TranscriptUnavailableView: View {
     ScrollView {
         TranscriptSection(
             transcript: nil,
-            status: .pending
+            status: .pending,
+            isTranscribing: false,
+            onRetranscribe: {}
+        )
+    }
+}
+
+#Preview("Transcribing") {
+    ScrollView {
+        TranscriptSection(
+            transcript: "Previous transcript...",
+            status: .inProgress,
+            isTranscribing: true,
+            onRetranscribe: {}
         )
     }
 }

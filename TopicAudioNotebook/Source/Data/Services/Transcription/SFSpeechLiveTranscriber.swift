@@ -1,12 +1,19 @@
 import Foundation
 import Speech
 import AVFoundation
+import Combine
 
 @MainActor
-class LiveTranscriber: ObservableObject {
-    @Published var transcript: String = ""
-    @Published var isTranscribing: Bool = false
+final class SFSpeechLiveTranscriber: ObservableObject, LiveTranscriptionServiceProtocol {
+    @Published private(set) var transcript: String = ""
+    @Published private(set) var isTranscribing: Bool = false
     @Published var errorMessage: String?
+    
+    let providerType: TranscriptionProvider = .sfSpeechRecognizer
+    
+    var transcriptPublisher: AnyPublisher<String, Never> {
+        $transcript.eraseToAnyPublisher()
+    }
     
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
@@ -14,13 +21,17 @@ class LiveTranscriber: ObservableObject {
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     
     func startTranscribing() async {
+        log.info("🎤 [SFSpeechLive] Starting live transcription...", category: .transcription)
+        
         let authorized = await requestAuthorization()
         guard authorized else {
+            log.error("🎤 [SFSpeechLive] Not authorized", category: .transcription)
             errorMessage = "Speech recognition not authorized"
             return
         }
         
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
+            log.error("🎤 [SFSpeechLive] Recognizer not available", category: .transcription)
             errorMessage = "Speech recognizer not available"
             return
         }
@@ -29,12 +40,16 @@ class LiveTranscriber: ObservableObject {
             try await setupAudioSession()
             try startRecognition(with: recognizer)
             isTranscribing = true
+            log.info("🎤 [SFSpeechLive] Live transcription started", category: .transcription)
         } catch {
+            log.error("🎤 [SFSpeechLive] Failed to start: \(error.localizedDescription)", category: .transcription)
             errorMessage = "Failed to start transcription: \(error.localizedDescription)"
         }
     }
     
     func stopTranscribing() {
+        log.info("🎤 [SFSpeechLive] Stopping live transcription", category: .transcription)
+        
         audioEngine?.stop()
         audioEngine?.inputNode.removeTap(onBus: 0)
         recognitionRequest?.endAudio()

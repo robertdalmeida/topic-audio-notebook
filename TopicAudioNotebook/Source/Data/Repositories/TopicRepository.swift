@@ -15,9 +15,15 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     private let fileManager = FileManager.default
     private let storageManager = StorageManager.shared
     private let summarizationService: StateManagedSummarizationService
+    private let transcriptionFactory: TranscriptionServiceFactory
     
-    init(stateManager: SummarizationStateManager = .shared) {
+    init(
+        stateManager: SummarizationStateManager = .shared,
+        transcriptionFactory: TranscriptionServiceFactory = .shared
+    ) {
+        log.info("TopicRepository:init")
         self.summarizationService = StateManagedSummarizationService(stateManager: stateManager)
+        self.transcriptionFactory = transcriptionFactory
         currentStorageType = storageManager.currentStorageType
         Task {
             await loadTopics()
@@ -211,18 +217,27 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
     }
     
     func transcribeRecording(recordingId: UUID, in topicId: UUID) async {
+        log.info("transcribeRecording() called for recordingId: \(recordingId)", category: .repository)
+        
         guard let topicIndex = topics.firstIndex(where: { $0.id == topicId }),
               let recordingIndex = topics[topicIndex].recordings.firstIndex(where: { $0.id == recordingId }) else {
+            log.error("Recording or topic not found", category: .repository)
             return
         }
+        
+        let fileURL = topics[topicIndex].recordings[recordingIndex].fileURL
+        log.info("Starting transcription for file: \(fileURL.path)", category: .repository)
+        log.info("Current provider: \(transcriptionFactory.currentProvider)", category: .repository)
         
         topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .inProgress
         
         do {
-            let transcript = try await TranscriptionService.shared.transcribe(
-                audioURL: topics[topicIndex].recordings[recordingIndex].fileURL
+            log.info("Calling transcriptionFactory.currentService.transcribe()...", category: .repository)
+            let transcript = try await transcriptionFactory.currentService.transcribe(
+                audioURL: fileURL
             )
             
+            log.info("Transcription completed, length: \(transcript.count)", category: .repository)
             topics[topicIndex].recordings[recordingIndex].transcript = transcript
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .completed
             topics[topicIndex].updatedAt = Date()
@@ -230,6 +245,7 @@ final class TopicRepository: ObservableObject, TopicRepositoryProtocol {
             
             await consolidateSummary(for: topicId)
         } catch {
+            log.error("Transcription error: \(error)", category: .repository)
             topics[topicIndex].recordings[recordingIndex].transcriptionStatus = .failed
             errorMessage = "Transcription failed: \(error.localizedDescription)"
             saveTopics()

@@ -8,6 +8,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 storageSection
+                transcriptionSection
                 summarizationSection
                 
                 if viewModel.selectedSummarizationProvider == .openAI {
@@ -85,6 +86,59 @@ struct SettingsView: View {
         } footer: {
             Text("Switching storage will migrate all your data to the new provider.")
         }
+    }
+    
+    // MARK: - Transcription Section
+    
+    private var transcriptionSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "waveform")
+                        .font(.title2)
+                        .foregroundStyle(.teal)
+                    
+                    VStack(alignment: .leading) {
+                        Text("Transcription Provider")
+                            .font(.headline)
+                        Text(viewModel.selectedTranscriptionProvider.rawValue)
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                }
+                
+                Text(viewModel.selectedTranscriptionProvider.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 4)
+            
+            Picker("Provider", selection: $viewModel.selectedTranscriptionProvider) {
+                ForEach(TranscriptionProvider.availableProviders, id: \.self) { provider in
+                    HStack {
+                        Image(systemName: provider.icon)
+                        Text(provider.rawValue)
+                    }
+                    .tag(provider)
+                }
+            }
+            .onChange(of: viewModel.selectedTranscriptionProvider) { _, newValue in
+                viewModel.onTranscriptionProviderChanged(to: newValue)
+            }
+        } header: {
+            Text("Transcription")
+        } footer: {
+            Text(transcriptionFooterText)
+        }
+    }
+    
+    private var transcriptionFooterText: String {
+        var parts: [String] = []
+        parts.append("Apple Speech uses SFSpeechRecognizer and works on all devices.")
+        if TranscriptionProvider.speechTranscriber.isAvailable {
+            parts.append("Speech Transcriber provides advanced on-device transcription with improved accuracy.")
+        }
+        return parts.joined(separator: " ")
     }
     
     // MARK: - Summarization Section
@@ -237,7 +291,7 @@ struct SettingsView: View {
             HStack {
                 Text("Transcription")
                 Spacer()
-                Text("Apple Speech Recognition")
+                Text(viewModel.selectedTranscriptionProvider.rawValue)
                     .foregroundStyle(.secondary)
             }
         } header: {

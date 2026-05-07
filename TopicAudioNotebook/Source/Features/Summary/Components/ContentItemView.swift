@@ -53,9 +53,10 @@ private struct ContentItemHeader: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(itemTitle)
-                    .font(.subheadline)
+                    .font(.caption)
                     .fontWeight(.semibold)
-                
+                    .foregroundStyle(.tertiary)
+
                 ContentItemMetadata(date: date, duration: duration)
             }
             

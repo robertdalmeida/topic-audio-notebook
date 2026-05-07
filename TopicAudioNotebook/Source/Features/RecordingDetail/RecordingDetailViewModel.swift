@@ -21,6 +21,7 @@ final class RecordingDetailViewModel: ObservableObject {
     @Published var selectedTab: RecordingTab = .transcript
     @Published private(set) var isGeneratingKeyPoints = false
     @Published private(set) var isGeneratingSummary = false
+    @Published private(set) var isTranscribing = false
     
     private let recordingId: UUID
     private let topicId: UUID
@@ -91,6 +92,14 @@ final class RecordingDetailViewModel: ObservableObject {
         Task {
             await repository.generateRecordingFullSummary(recordingId: recordingId, in: topicId)
             isGeneratingSummary = false
+        }
+    }
+    
+    func retranscribe() {
+        isTranscribing = true
+        Task {
+            await repository.transcribeRecording(recordingId: recordingId, in: topicId)
+            isTranscribing = false
         }
     }
 }
