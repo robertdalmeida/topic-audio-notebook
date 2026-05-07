@@ -4,7 +4,6 @@ import Combine
 @MainActor
 final class RecordingRowViewModel: ObservableObject {
     @Published private(set) var recording: Recording
-    @Published var showingTranscript = false
     
     private let recordingId: UUID
     private let topicId: UUID
@@ -42,9 +41,5 @@ final class RecordingRowViewModel: ObservableObject {
         if recording.transcriptionStatus == .failed {
             repository.retryTranscription(for: recording, in: topicId)
         }
-    }
-    
-    func presentTranscript() {
-        showingTranscript = true
     }
 }

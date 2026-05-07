@@ -9,17 +9,11 @@ struct RecordingRowView: View {
                 recording: viewModel.recording,
                 onRetry: viewModel.retryTranscription
             )
-            
             if viewModel.hasTranscript {
-                TranscriptPreviewButton(transcript: viewModel.recording.transcript!) {
-                    viewModel.presentTranscript()
-                }
+                TranscriptPreviewView(transcript: viewModel.recording.transcript!)
             }
         }
         .padding(.vertical, 4)
-        .sheet(isPresented: $viewModel.showingTranscript) {
-            TranscriptView(recording: viewModel.recording)
-        }
     }
 }
 
@@ -55,21 +49,17 @@ private struct RecordingRowHeader: View {
 
 // MARK: - Transcript Preview Button
 
-private struct TranscriptPreviewButton: View {
+private struct TranscriptPreviewView: View {
     let transcript: String
-    let onTap: () -> Void
-    
+
     var body: some View {
-        Button(action: onTap) {
-            Text(transcript)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
+        Text(transcript)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(8)
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
